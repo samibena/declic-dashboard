@@ -321,6 +321,7 @@ if(!D.paiementsEnCours||!Array.isArray(D.paiementsEnCours))D.paiementsEnCours=[]
 if(!D.todoAlerts||!Array.isArray(D.todoAlerts))D.todoAlerts=s.todoAlerts;
 if(!D.releves||!Array.isArray(D.releves))D.releves=[];
 if(!D.seuilAlerte)D.seuilAlerte=100000;
+if(!D.dismissedAlerts||!Array.isArray(D.dismissedAlerts))D.dismissedAlerts=[];
 if(!D.dettesFiscales)D.dettesFiscales=s.dettesFiscales;
 if(!D.caClient2025||!Array.isArray(D.caClient2025))D.caClient2025=s.caClient2025;
 if(!D.resultats)D.resultats=s.resultats;
@@ -409,25 +410,45 @@ document.getElementById('health-bar').innerHTML=`<div class="health-dot ${cd.hea
 // ===== OVERVIEW =====
 function renderOverview(cd){
 const today=new Date().toISOString().slice(0,10);
-let alerts='';
-if(cd.joursSurvie<30)alerts+=`<div class="alrt alrt-d">⚠️ <b>ALERTE CRITIQUE</b> — ${cd.joursSurvie} jours de trésorerie</div>`;
-const urg=D.dettes.filter(x=>x.priorite==='URGENT');
-if(urg.length)alerts+=`<div class="alrt alrt-w">🚨 <b>${urg.length} fournisseurs URGENT</b> — ${urg.map(x=>x.nom).join(', ')}</div>`;
-if(cd.crRetard>0)alerts+=`<div class="alrt alrt-d">⏰ <b>Créances en retard:</b> ${fmtK(cd.crRetard)}</div>`;
-if(cd.soldeAjuste<D.seuilAlerte)alerts+=`<div class="alrt alrt-w">💰 Solde sous le seuil d'alerte (${fmtK(D.seuilAlerte)})</div>`;
-// Auto alerts: clients > 60 days
-D.creances.filter(c=>!c.classeeSansSuite).forEach(c=>{c.factures.forEach(f=>{if(f.echeance){const d=daysBetween(f.echeance,today);if(d>60)alerts+=`<div class="alrt alrt-w">📋 ${c.client} — Facture ${f.ref} en retard de ${d} jours</div>`;}});});
-// Calendar J-3
-D.calendrier.forEach(c=>{const d=daysBetween(today,c.date);if(d>=0&&d<=3)alerts+=`<div class="alrt alrt-i">📅 J-${d}: ${c.desc}</div>`;});
-// Todos
-let todos='';
-if(D.todoAlerts&&D.todoAlerts.length){todos='<div class="stitle" style="margin-top:16px">📌 Actions à mener</div>';
-D.todoAlerts.forEach(t=>{todos+=`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--brd)"><input type="checkbox" ${t.done?'checked':''} onchange="window.toggleTodo('${t.id}')"><span style="${t.done?'text-decoration:line-through;opacity:.5':''}">${t.desc}</span><button class="btn btn-sm btn-d" onclick="window.delTodo('${t.id}')">✕</button></div>`;});
-todos+=`<div style="margin-top:8px"><button class="btn btn-sm btn-p" onclick="window.addTodoPrompt()">+ Action</button></div>`;}
+// Build notifications by category
+if(!D.dismissedAlerts)D.dismissedAlerts=[];
+const notifs={critique:[],fournisseurs:[],creances:[],echeances:[],actions:[]};
+// Critiques
+if(cd.joursSurvie<30)notifs.critique.push({id:'_js',txt:`${cd.joursSurvie} jours de trésorerie restants`,cls:'alrt-d'});
+if(cd.soldeAjuste<D.seuilAlerte)notifs.critique.push({id:'_seuil',txt:`Solde sous le seuil d'alerte (${fmtK(D.seuilAlerte)})`,cls:'alrt-d'});
+// Fournisseurs
+D.dettes.filter(x=>x.priorite==='URGENT').forEach(x=>{notifs.fournisseurs.push({id:'_du_'+x.id,txt:`${x.nom} — URGENT — ${fmtK(x.montant)}`,cls:'alrt-w'});});
+// Créances
+if(cd.crRetard>0)notifs.creances.push({id:'_crtot',txt:`Total créances en retard: ${fmtK(cd.crRetard)}`,cls:'alrt-d'});
+D.creances.filter(c=>!c.classeeSansSuite).forEach(c=>{c.factures.forEach(f=>{if(f.echeance){const d=daysBetween(f.echeance,today);if(d>60)notifs.creances.push({id:'_cr_'+f.id,txt:`${c.client} — Facture ${f.ref} en retard de ${d} jours (${fmtK(f.montant)})`,cls:'alrt-w'});}});});
+// Échéances J-3
+D.calendrier.forEach(c=>{const d=daysBetween(today,c.date);if(d>=0&&d<=3)notifs.echeances.push({id:'_cal_'+c.id,txt:`J-${d}: ${c.desc}`,cls:'alrt-i'});});
+// Actions
+if(D.todoAlerts)D.todoAlerts.filter(t=>!t.done).forEach(t=>{notifs.actions.push({id:'_todo_'+t.id,txt:t.desc,cls:'alrt-w',isTodo:true,todoId:t.id});});
+// Filter dismissed
+Object.keys(notifs).forEach(cat=>{notifs[cat]=notifs[cat].filter(n=>!D.dismissedAlerts.includes(n.id));});
+// Render categorized accordions
+const catLabels={critique:'🚨 Alertes critiques',fournisseurs:'📋 Fournisseurs',creances:'⏰ Créances',echeances:'📅 Échéances proches',actions:'📌 Actions à mener'};
+const catIcons={critique:'🚨',fournisseurs:'📋',creances:'⏰',echeances:'📅',actions:'📌'};
+let notifsHtml='<div class="stitle">🔔 Notifications</div>';
+let totalNotifs=Object.values(notifs).reduce((s,arr)=>s+arr.length,0);
+if(totalNotifs===0)notifsHtml+='<div class="alrt alrt-i" style="text-align:center">✅ Aucune notification en cours</div>';
+Object.keys(notifs).forEach(cat=>{
+const items=notifs[cat];if(!items.length)return;
+const accOpen=openAccs.has('notif_'+cat);
+let inner=items.map(n=>{
+let actions=`<button class="btn btn-sm btn-g" onclick="window.dismissAlert('${n.id}')" title="Marquer traité">✓ Traité</button>`;
+if(n.isTodo)actions+=` <button class="btn btn-sm btn-d" onclick="window.delTodo('${n.todoId}')">✕</button>`;
+return`<div class="${n.cls}" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span>${n.txt}</span><div style="display:flex;gap:4px;flex-shrink:0;margin-left:8px">${actions}</div></div>`;
+}).join('');
+notifsHtml+=`<div class="acc"><div class="acc-h ${accOpen?'open':''}" onclick="window.toggleAcc('notif_${cat}')"><span>${catLabels[cat]} <span class="tag tag-u" style="margin-left:6px">${items.length}</span></span><span class="arr">▶</span></div><div class="acc-b">${inner}</div></div>`;
+});
+// Add todo button
+notifsHtml+=`<div style="margin-top:8px;margin-bottom:16px"><button class="btn btn-sm btn-p" onclick="window.addTodoPrompt()">+ Action</button> <button class="btn btn-sm btn-s" onclick="window.resetDismissed()">Réafficher tout</button></div>`;
 
 document.getElementById('mod-overview').innerHTML=`
 <div class="stitle">🏠 Vue d'ensemble</div>
-${alerts}
+${notifsHtml}
 <div class="cards">
 <div class="card"><div class="card-l">Solde ajusté</div><div class="card-v ${cd.soldeAjuste<100000?'red':'green'}">${fmtK(cd.soldeAjuste)}</div><div class="card-s">Brut: ${fmtK(cd.soldeBrut)} — Paiements en cours: ${fmtK(cd.totPEC)}</div></div>
 <div class="card"><div class="card-l">Burn rate mensuel</div><div class="card-v red">${fmtK(cd.burnRate)}</div><div class="card-s">${D.charges.salaires.length} salariés + fixes</div></div>
@@ -440,7 +461,6 @@ ${alerts}
 <div class="cht"><h4>CA par client 2025</h4><canvas id="ch-ca" height="180"></canvas></div>
 <div class="cht"><h4>Évolution Résultats (3 ans)</h4><canvas id="ch-res" height="180"></canvas></div>
 </div>
-${todos}
 <div class="stitle" style="margin-top:16px">⚙️ Paramètres</div>
 <div class="frow">
 <div class="fgrp"><label>Seuil d'alerte solde (MAD)</label><input type="number" value="${D.seuilAlerte||100000}" onchange="window.updateSeuil(this.value)"></div>
@@ -647,6 +667,8 @@ window.editSolde=()=>{const sm=D.soldeManuel;showModal(`<h3>Modifier soldes</h3>
 <div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="D.soldeManuel={comptePrincipal:+document.getElementById('m-cp').value,compteBis:+document.getElementById('m-cb').value,caisse:+document.getElementById('m-ca').value,date:document.getElementById('m-dt').value};save();window.closeModal()">Enregistrer</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
 // -- Seuil --
 window.updateSeuil=(v)=>{D.seuilAlerte=+v;save();};
+window.dismissAlert=(id)=>{if(!D.dismissedAlerts)D.dismissedAlerts=[];if(!D.dismissedAlerts.includes(id))D.dismissedAlerts.push(id);save();};
+window.resetDismissed=()=>{D.dismissedAlerts=[];save();};
 // -- Salaires --
 window.addSalaire=()=>{showModal(`<h3>Nouvel employé</h3><div class="frow"><div class="fgrp"><label>Nom</label><input id="m-sn"></div><div class="fgrp"><label>Poste</label><input id="m-sr"></div></div><div class="frow"><div class="fgrp"><label>Salaire net</label><input id="m-sm" type="number"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="D.charges.salaires.push({id:uid(),nom:document.getElementById('m-sn').value,role:document.getElementById('m-sr').value,net:+document.getElementById('m-sm').value});save();window.closeModal()">Ajouter</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
 window.editSalaire=(id)=>{const s=D.charges.salaires.find(x=>x.id===id);if(!s)return;showModal(`<h3>Modifier employé</h3><div class="frow"><div class="fgrp"><label>Nom</label><input id="m-sn" value="${s.nom}"></div><div class="fgrp"><label>Poste</label><input id="m-sr" value="${s.role}"></div></div><div class="frow"><div class="fgrp"><label>Salaire net</label><input id="m-sm" type="number" value="${s.net}"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="const x=D.charges.salaires.find(s=>s.id==='${id}');x.nom=document.getElementById('m-sn').value;x.role=document.getElementById('m-sr').value;x.net=+document.getElementById('m-sm').value;save();window.closeModal()">Enregistrer</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
