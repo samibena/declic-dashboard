@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Déclic — Dashboard Financier</title>
+<title>Déclic — Dashboard Financier V3</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 <style>
 :root{--red:#E30613;--red-d:#B80510;--gray:#4A4A4A;--bg:#fff;--bg2:#f5f5f5;--bg3:#eaeaea;--text:#1a1a1a;--text2:#666;--card:#fff;--brd:#e0e0e0;--shd:rgba(0,0,0,.06);--grn:#27ae60;--org:#f39c12;--blu:#2980b9;--dgr:#e74c3c;--prp:#8e44ad}
 .dark{--bg:#121212;--bg2:#1e1e1e;--bg3:#2a2a2a;--text:#e0e0e0;--text2:#999;--card:#1e1e1e;--brd:#333;--shd:rgba(0,0,0,.3)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);transition:background .3s,color .3s;font-size:13px}
-/* LOGIN */
 #login-screen{display:flex;align-items:center;justify-content:center;height:100vh;background:var(--bg)}
 .login-box{background:var(--card);border:1px solid var(--brd);border-radius:12px;padding:40px;text-align:center;width:340px;box-shadow:0 8px 32px var(--shd)}
 .login-box img{width:140px;margin-bottom:24px}
@@ -20,7 +20,6 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .login-box button{width:100%;padding:12px;background:var(--red);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
 .login-box button:hover{background:var(--red-d)}
 .login-err{color:var(--dgr);font-size:12px;margin-top:6px;display:none}
-/* LAYOUT */
 #app{display:none}
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:var(--card);border-bottom:1px solid var(--brd);position:sticky;top:0;z-index:100}
 .topbar-l{display:flex;align-items:center;gap:10px}
@@ -31,27 +30,22 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .sync-d.off{background:var(--dgr)}
 .sync-l{font-size:11px;color:var(--text2)}
 .tbtn{background:none;border:1px solid var(--brd);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:13px;color:var(--text)}
-/* HEALTH SCORE */
 .health-bar{display:flex;align-items:center;gap:12px;padding:12px 20px;background:var(--bg2);border-bottom:1px solid var(--brd)}
 .health-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
 .health-dot.green{background:var(--grn)}.health-dot.orange{background:var(--org)}.health-dot.red{background:var(--dgr)}
 .health-txt{font-size:12px;font-weight:600}
-/* NAV */
 .nav{display:flex;gap:3px;padding:6px 20px;background:var(--bg2);overflow-x:auto;border-bottom:1px solid var(--brd)}
 .nav button{padding:7px 14px;border:none;background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;border-radius:5px;white-space:nowrap;transition:all .2s}
 .nav button.active{background:var(--red);color:#fff}
 .nav button:hover:not(.active){background:var(--bg3)}
-/* CONTENT */
 .content{padding:20px;max-width:1400px;margin:0 auto}
 .module{display:none}.module.active{display:block}
-/* CARDS */
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px}
 .card{background:var(--card);border:1px solid var(--brd);border-radius:8px;padding:14px;box-shadow:0 1px 4px var(--shd)}
 .card-l{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
 .card-v{font-size:22px;font-weight:700}
 .card-s{font-size:11px;color:var(--text2);margin-top:2px}
 .red{color:var(--dgr)}.green{color:var(--grn)}.orange{color:var(--org)}.blue{color:var(--blu)}
-/* ALERT */
 .alrt{border-radius:6px;padding:10px 14px;margin-bottom:10px;font-size:12px}
 .alrt-w{background:#fef3cd;border:1px solid #ffc107;color:#856404}
 .alrt-d{background:#f8d7da;border:1px solid #f5c6cb;color:#721c24}
@@ -59,22 +53,18 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .dark .alrt-w{background:#3d3200;border-color:#665200;color:#ffc107}
 .dark .alrt-d{background:#3d0a0a;border-color:#5c1010;color:#f5c6cb}
 .dark .alrt-i{background:#0a2d33;border-color:#0c5460;color:#bee5eb}
-/* TABLE */
 .tw{overflow-x:auto;margin-bottom:16px}
 table{width:100%;border-collapse:collapse;font-size:12px}
 th{background:var(--bg2);color:var(--text2);font-weight:600;text-align:left;padding:8px 10px;border-bottom:2px solid var(--brd);cursor:pointer;user-select:none;white-space:nowrap}
 th:hover{background:var(--bg3)}
 td{padding:8px 10px;border-bottom:1px solid var(--brd)}
 tr:hover td{background:var(--bg2)}
-/* TAGS */
 .tag{display:inline-block;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600}
 .tag-u{background:#f8d7da;color:#721c24}.tag-a{background:#d4edda;color:#155724}.tag-i{background:#e2e3e5;color:#383d41}
 .tag-r{background:#f5c6cb;color:#721c24}.tag-w{background:#fff3cd;color:#856404}.tag-b{background:#cce5ff;color:#004085}
 .dark .tag-u{background:#5c1010;color:#f5c6cb}.dark .tag-a{background:#0d3d1a;color:#a3d9b1}.dark .tag-i{background:#333;color:#999}
 .dark .tag-r{background:#5c1010;color:#f5c6cb}.dark .tag-w{background:#3d3200;color:#ffc107}.dark .tag-b{background:#003366;color:#cce5ff}
-/* SECTION */
 .stitle{font-size:16px;font-weight:700;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--red);display:flex;align-items:center;gap:6px}
-/* ACCORDION */
 .acc{border:1px solid var(--brd);border-radius:8px;margin-bottom:10px;overflow:hidden}
 .acc-h{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg2);cursor:pointer;font-weight:600;font-size:13px;user-select:none}
 .acc-h:hover{background:var(--bg3)}
@@ -82,10 +72,8 @@ tr:hover td{background:var(--bg2)}
 .acc-h.open .arr{transform:rotate(90deg)}
 .acc-b{display:none;padding:10px 14px}
 .acc-h.open+.acc-b{display:block}
-/* CHART */
 .cht{background:var(--card);border:1px solid var(--brd);border-radius:8px;padding:14px;margin-bottom:16px}
 .cht h4{font-size:13px;margin-bottom:8px}
-/* FORMS */
 .frow{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
 .fgrp{flex:1;min-width:140px}
 .fgrp label{display:block;font-size:11px;color:var(--text2);margin-bottom:3px;font-weight:600}
@@ -95,33 +83,26 @@ tr:hover td{background:var(--bg2)}
 .btn-s{background:var(--bg3);color:var(--text)}.btn-d{background:var(--dgr);color:#fff}
 .btn-g{background:var(--grn);color:#fff}
 .btn-sm{padding:3px 8px;font-size:11px}
-/* MODAL */
 .mo{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center}
 .mo.show{display:flex}
 .mo-c{background:var(--card);border-radius:10px;padding:20px;width:90%;max-width:520px;max-height:80vh;overflow-y:auto}
 .mo-c h3{font-size:15px;margin-bottom:12px}
-/* TOOLBAR */
 .tbar{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
-/* UPLOAD */
 .upload-zone{border:2px dashed var(--brd);border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:12px}
 .upload-zone:hover{border-color:var(--red)}
 .upload-zone.dragover{border-color:var(--red);background:rgba(227,6,19,.05)}
-/* RESPONSIVE */
-@media(max-width:768px){.cards{grid-template-columns:1fr 1fr}.content{padding:12px}.card-v{font-size:18px}}
-@media(max-width:480px){.cards{grid-template-columns:1fr}.frow{flex-direction:column}}
-/* EDIT INLINE */
-.editable{cursor:pointer;border-bottom:1px dashed var(--brd)}
-.editable:hover{border-color:var(--red)}
-.edit-input{border:1px solid var(--red);border-radius:4px;padding:3px 6px;font-size:12px;background:var(--bg);color:var(--text);width:100%}
-/* PIPELINE */
 .pip-c{background:var(--card);border:1px solid var(--brd);border-radius:6px;padding:12px;margin-bottom:8px}
-/* CAL */
 .cal-i{display:flex;align-items:flex-start;gap:10px;padding:10px;border-bottom:1px solid var(--brd)}
 .cal-d{min-width:75px;font-weight:700;font-size:12px;color:var(--red)}
+.caisse-nav{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.caisse-nav button{padding:4px 10px;border:1px solid var(--brd);background:var(--bg2);border-radius:5px;cursor:pointer;font-size:12px;color:var(--text)}
+.caisse-nav button:hover{background:var(--bg3)}
+.caisse-nav span{font-weight:700;font-size:14px;min-width:100px;text-align:center}
+@media(max-width:768px){.cards{grid-template-columns:1fr 1fr}.content{padding:12px}.card-v{font-size:18px}}
+@media(max-width:480px){.cards{grid-template-columns:1fr}.frow{flex-direction:column}}
 </style>
 </head>
 <body>
-<!-- LOGIN -->
 <div id="login-screen">
 <div class="login-box">
 <img src="data:image/jpeg;base64,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" alt="Déclic">
@@ -130,12 +111,11 @@ tr:hover td{background:var(--bg2)}
 <div class="login-err" id="lerr">Mot de passe incorrect</div>
 </div>
 </div>
-<!-- APP -->
 <div id="app">
 <div class="topbar">
 <div class="topbar-l">
 <img src="data:image/jpeg;base64,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" alt="Déclic">
-<div class="topbar-t">Dashboard Financier</div>
+<div class="topbar-t">Dashboard Financier V3</div>
 </div>
 <div class="topbar-r">
 <span class="sync-d" id="sdot"></span><span class="sync-l" id="slab">Connecté</span>
@@ -151,6 +131,9 @@ tr:hover td{background:var(--bg2)}
 <button onclick="window.showMod('creances',this)">📊 Créances</button>
 <button onclick="window.showMod('pipeline',this)">🎯 Pipeline</button>
 <button onclick="window.showMod('calendrier',this)">📅 Calendrier</button>
+<button onclick="window.showMod('caisse',this)">🗃️ Caisse</button>
+<button onclick="window.showMod('achats',this)">🛒 Achats</button>
+<button onclick="window.showMod('ventes',this)">💵 Ventes</button>
 </div>
 <div class="content">
 <div class="tbar">
@@ -158,16 +141,17 @@ tr:hover td{background:var(--bg2)}
 <button class="btn btn-sm btn-s" onclick="document.getElementById('imp-f').click()">📤 Import</button>
 <input type="file" id="imp-f" accept=".json" style="display:none" onchange="window.importData(event)">
 </div>
-<!-- MODULES -->
 <div class="module active" id="mod-overview"></div>
 <div class="module" id="mod-tresorerie"></div>
 <div class="module" id="mod-dettes"></div>
 <div class="module" id="mod-creances"></div>
 <div class="module" id="mod-pipeline"></div>
 <div class="module" id="mod-calendrier"></div>
+<div class="module" id="mod-caisse"></div>
+<div class="module" id="mod-achats"></div>
+<div class="module" id="mod-ventes"></div>
 </div>
 </div>
-<!-- MODAL GENERIC -->
 <div class="mo" id="modal"><div class="mo-c" id="modal-body"></div></div>
 <script type="module">
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
@@ -176,12 +160,16 @@ const app=initializeApp({apiKey:"AIzaSyBCj_WKPfgmT_Z1Fx1ns5X0pvXfkrkCCcs",authDo
 const db=getFirestore(app);
 const PASS='bouchrasamideclic2026';
 let D=null,CI={},openAccs=new Set();
+// Expose D and save on window for inline modal handlers
+Object.defineProperty(window,'D',{get:()=>D,set:v=>{D=v;}});
 // ===== UTILS =====
 const fmt=n=>{if(n==null||isNaN(n))return'0';let s=Math.round(n).toString();let neg=s.startsWith('-');if(neg)s=s.slice(1);let r='';for(let i=s.length-1,c=0;i>=0;i--,c++){if(c>0&&c%3===0)r=' '+r;r=s[i]+r;}return(neg?'-':'')+r;};
 const fmtK=n=>fmt(n)+' MAD';
 const fmtD=d=>{if(!d)return'—';const[y,m,dd]=d.split('-');return dd+'/'+m+'/'+y;};
 const uid=()=>'_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+window.uid=uid;
 const daysBetween=(a,b)=>Math.floor((new Date(b)-new Date(a))/864e5);
+const getMoisLabel=(y,m)=>{const mois=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];return mois[m-1]+' '+y;};
 // ===== AUTH =====
 window.doLogin=()=>{if(document.getElementById('pwd').value===PASS){sessionStorage.setItem('da','1');document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='block';initApp();}else{document.getElementById('lerr').style.display='block';}};
 window.doLogout=()=>{sessionStorage.removeItem('da');location.reload();};
@@ -195,12 +183,13 @@ const showModal=(html)=>{document.getElementById('modal-body').innerHTML=html;do
 window.closeModal=()=>document.getElementById('modal').classList.remove('show');
 // ===== ACCORDION =====
 window.toggleAcc=(id)=>{if(openAccs.has(id))openAccs.delete(id);else openAccs.add(id);renderAll();};
+
 // ===== SEED DATA =====
 function seed(){return{
 soldeManuel:{comptePrincipal:169357,compteBis:340,caisse:2945,date:'2026-03-28'},
 historiqueSoldes:{'03/2025':392940,'04/2025':53512,'05/2025':364266,'06/2025':266776,'07/2025':247661,'08/2025':206155,'09/2025':15105,'10/2025':281918,'11/2025':484837,'12/2025':428475,'01/2026':257646,'02/2026':44778,'03/2026':169697},
 charges:{
-salaires:[{id:'s1',nom:'Boukhrissi Omar',role:'associé',net:20420},{id:'s2',nom:'Zoui Fayçal',role:'associé',net:25000},{id:'s3',nom:'Ben Abdel Hamid Sami',role:'associé/gérant',net:20420},{id:'s4',nom:'Ben Abdel Hamid Yassine',role:'associé/digital',net:10362},{id:'s5',nom:'Boutsis Bouchra',role:'admin',net:9694},{id:'s6',nom:'Ghoti Hassan',role:'production',net:14803},{id:'s7',nom:'El Ouafi Redouane',role:'terrain',net:5142},{id:'s8',nom:'Saihi Zhor',role:'support',net:4018},{id:'s9',nom:'Benabdelhamid Kamil',role:'média',net:13339},{id:'s10',nom:'Mesbah Abdellah',role:'terrain',net:12699},{id:'s11',nom:'Markhouss Ayoub',role:'activation',net:7000},{id:'s12',nom:'Bendaher Fouad',role:'logistique',net:5041},{id:'s13',nom:'Lkabouse Fayçal',role:'production',net:6334},{id:'s14',nom:'Ammar Zain',role:'digital',net:13000},{id:'s15',nom:'Dyab Mohammed',role:'création',net:9000},{id:'s16',nom:'Dardouz Youssef',role:'production',net:6500}],
+salaires:[{id:'s1',nom:'Boukhrissi Omar',role:'associé',net:20420},{id:'s2',nom:'Zoui Fayçal',role:'associé',net:25000},{id:'s3',nom:'Ben Abdel Hamid Sami',role:'associé/gérant',net:20420},{id:'s4',nom:'Ben Abdel Hamid Yassine',role:'associé/digital',net:10362},{id:'s5',nom:'Ali Ben Abdel Hamid',role:'opérationnel',net:7000},{id:'s6',nom:'Boutsis Bouchra',role:'admin',net:9694},{id:'s7',nom:'Ghoti Hassan',role:'production',net:14803},{id:'s8',nom:'El Ouafi Redouane',role:'terrain',net:5142},{id:'s9',nom:'Saihi Zhor',role:'support',net:4018},{id:'s10',nom:'Benabdelhamid Kamil',role:'média',net:13339},{id:'s11',nom:'Mesbah Abdellah',role:'terrain',net:12699},{id:'s12',nom:'Markhouss Ayoub',role:'activation',net:7000},{id:'s13',nom:'Bendaher Fouad',role:'logistique',net:5041},{id:'s14',nom:'Lkabouse Fayçal',role:'production',net:6334},{id:'s15',nom:'Ammar Zain',role:'digital',net:13000},{id:'s16',nom:'Dyab Mohammed',role:'création',net:9000},{id:'s17',nom:'Dardouz Youssef',role:'production',net:6500}],
 admin:[{id:'a1',nom:'CNSS',montant:43000},{id:'a2',nom:'IR',montant:24000}],
 credits:[{id:'c1',nom:'Eqdom (fin 2027)',montant:4013},{id:'c2',nom:'Sofac (fin 2027)',montant:8129},{id:'c3',nom:'RCI (fin 2030)',montant:3700},{id:'c4',nom:'Saham (fin 2028)',montant:12700}],
 logistique:[{id:'l1',nom:'Loyer',montant:16000},{id:'l2',nom:'Maroc Telecom',montant:4000},{id:'l3',nom:'Eau & Électricité',montant:1500}]
@@ -286,22 +275,29 @@ todoAlerts:[
 {id:'t2',desc:'Relancer Optimus pour signature convention',done:false},
 {id:'t3',desc:'Relancer Volvo pour créance en retard (66 306 MAD)',done:false}],
 releves:[],
-seuilAlerte:100000
+seuilAlerte:100000,
+dismissedAlerts:[],
+caisse:{
+moisCourant:'2026-03',
+operations:[],
+soldeInitial:2945
+},
+achats:{imports:[],recap:[]},
+ventes:{imports:[],recap:[]}
 };}
 
-// ===== COMPUTED =====
+// ===== ENSURE DATA (migration safety) =====
 function ensureData(){
 const s=seed();
 if(!D.charges)D.charges={};
 if(!D.charges.salaires)D.charges.salaires=s.charges.salaires;
-if(!Array.isArray(D.charges.salaires)){const old=D.charges.salaires;D.charges.salaires=Object.values(old);}
+if(!Array.isArray(D.charges.salaires))D.charges.salaires=Object.values(D.charges.salaires);
 if(!D.charges.admin)D.charges.admin=s.charges.admin;
 if(!Array.isArray(D.charges.admin))D.charges.admin=Object.values(D.charges.admin);
 if(!D.charges.credits)D.charges.credits=s.charges.credits;
 if(!Array.isArray(D.charges.credits))D.charges.credits=Object.values(D.charges.credits);
 if(!D.charges.logistique)D.charges.logistique=s.charges.logistique;
 if(!Array.isArray(D.charges.logistique))D.charges.logistique=Object.values(D.charges.logistique);
-// V1 had charges.fixes as object — migrate
 if(D.charges.fixes&&!D.charges.admin.length){
 const f=D.charges.fixes;
 D.charges.admin=[{id:'a1',nom:'CNSS',montant:f.cnss||43000},{id:'a2',nom:'IR',montant:f.ir||24000}];
@@ -309,7 +305,6 @@ D.charges.credits=[{id:'c1',nom:'Eqdom (fin 2027)',montant:f.eqdom||4013},{id:'c
 D.charges.logistique=[{id:'l1',nom:'Loyer',montant:16000},{id:'l2',nom:'Maroc Telecom',montant:4000},{id:'l3',nom:'Eau & Électricité',montant:1500}];
 }
 if(!D.soldeManuel){
-// V1 had tresorerie object
 if(D.tresorerie){D.soldeManuel={comptePrincipal:D.tresorerie.comptePrincipal||0,compteBis:D.tresorerie.compteBis||0,caisse:D.tresorerie.caisse||0,date:'2026-03-28'};}
 else{D.soldeManuel=s.soldeManuel;}
 }
@@ -327,27 +322,32 @@ if(!D.caClient2025||!Array.isArray(D.caClient2025))D.caClient2025=s.caClient2025
 if(!D.resultats)D.resultats=s.resultats;
 if(!D.pipeline||!Array.isArray(D.pipeline))D.pipeline=s.pipeline;
 if(!D.calendrier||!Array.isArray(D.calendrier))D.calendrier=s.calendrier;
-// Dettes: handle V1 array or Firestore object conversion
 if(!D.dettes)D.dettes=s.dettes;
 if(!Array.isArray(D.dettes))D.dettes=Object.values(D.dettes);
-// Creances: V1 was object with keys (smt, cac...), V2 is array
 if(!D.creances)D.creances=s.creances;
 if(!Array.isArray(D.creances)){
-// Convert V1 object format to V2 array
-const old=D.creances;
-const arr=[];
-Object.keys(old).forEach((k,i)=>{
-const v=old[k];
-if(v&&v.client){
-if(!v.id)v.id='cr'+i;
-if(v.classeeSansSuite===undefined)v.classeeSansSuite=false;
-if(!Array.isArray(v.factures))v.factures=v.factures?Object.values(v.factures):[];
-arr.push(v);
-}
-});
+const old=D.creances;const arr=[];
+Object.keys(old).forEach((k,i)=>{const v=old[k];if(v&&v.client){if(!v.id)v.id='cr'+i;if(v.classeeSansSuite===undefined)v.classeeSansSuite=false;if(!Array.isArray(v.factures))v.factures=v.factures?Object.values(v.factures):[];arr.push(v);}});
 D.creances=arr.length?arr:s.creances;
 }
-// Ensure IDs on all arrays
+// Caisse module
+if(!D.caisse)D.caisse=s.caisse;
+if(!D.caisse.operations)D.caisse.operations=[];
+if(!Array.isArray(D.caisse.operations))D.caisse.operations=Object.values(D.caisse.operations);
+if(!D.caisse.moisCourant)D.caisse.moisCourant='2026-03';
+if(D.caisse.soldeInitial==null)D.caisse.soldeInitial=2945;
+// Achats/Ventes modules
+if(!D.achats)D.achats={imports:[],recap:[]};
+if(!D.achats.imports)D.achats.imports=[];
+if(!Array.isArray(D.achats.imports))D.achats.imports=Object.values(D.achats.imports);
+if(!D.achats.recap)D.achats.recap=[];
+if(!Array.isArray(D.achats.recap))D.achats.recap=Object.values(D.achats.recap);
+if(!D.ventes)D.ventes={imports:[],recap:[]};
+if(!D.ventes.imports)D.ventes.imports=[];
+if(!Array.isArray(D.ventes.imports))D.ventes.imports=Object.values(D.ventes.imports);
+if(!D.ventes.recap)D.ventes.recap=[];
+if(!Array.isArray(D.ventes.recap))D.ventes.recap=Object.values(D.ventes.recap);
+// Ensure IDs
 D.charges.salaires.forEach((x,i)=>{if(!x.id)x.id='s'+i;});
 D.charges.admin.forEach((x,i)=>{if(!x.id)x.id='a'+i;});
 D.charges.credits.forEach((x,i)=>{if(!x.id)x.id='c'+i;});
@@ -356,7 +356,22 @@ D.dettes.forEach((x,i)=>{if(!x.id)x.id='d'+i;if(!x.paiements)x.paiements=[];if(!
 D.creances.forEach((x,i)=>{if(!x.id)x.id='cr'+i;if(x.classeeSansSuite===undefined)x.classeeSansSuite=false;if(!Array.isArray(x.factures))x.factures=x.factures?Object.values(x.factures):[];x.factures.forEach((f,j)=>{if(!f.id)f.id='f'+i+'_'+j;});});
 D.pipeline.forEach((x,i)=>{if(!x.id)x.id='p'+i;});
 D.calendrier.forEach((x,i)=>{if(!x.id)x.id='cl'+i;});
+D.caisse.operations.forEach((x,i)=>{if(!x.id)x.id='co'+i;});
 }
+
+// ===== CAISSE: compute solde for tresorerie =====
+function getCaisseSolde(){
+if(!D||!D.caisse)return D?.soldeManuel?.caisse||2945;
+const ops=D.caisse.operations;
+if(!ops||!ops.length)return D.caisse.soldeInitial||2945;
+// Get current month ops sorted by date
+const sorted=[...ops].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+let solde=D.caisse.soldeInitial||0;
+sorted.forEach(op=>{solde+=(op.entree||0)-(op.sortie||0);});
+return solde;
+}
+
+// ===== COMPUTED =====
 function getComputedData(){
 ensureData();
 const c=D.charges;
@@ -366,7 +381,8 @@ const totCred=(c.credits||[]).reduce((s,x)=>s+(x.montant||0),0);
 const totLog=(c.logistique||[]).reduce((s,x)=>s+(x.montant||0),0);
 const burnRate=totSal+totAdmin+totCred+totLog;
 const sm=D.soldeManuel||{comptePrincipal:0,compteBis:0,caisse:0};
-const soldeBrut=(sm.comptePrincipal||0)+(sm.compteBis||0)+(sm.caisse||0);
+const caisseSolde=getCaisseSolde();
+const soldeBrut=(sm.comptePrincipal||0)+(sm.compteBis||0)+caisseSolde;
 const totPEC=(D.paiementsEnCours||[]).reduce((s,x)=>s+(x.montant||0),0);
 const soldeAjuste=soldeBrut-totPEC;
 const joursSurvie=burnRate>0?Math.floor(soldeAjuste/(burnRate/30)):999;
@@ -376,7 +392,6 @@ const crActives=D.creances.filter(c=>!c.classeeSansSuite);
 const totCreances=crActives.reduce((s,c)=>s+c.factures.reduce((ss,f)=>ss+f.montant,0),0);
 const crRetard=crActives.reduce((s,c)=>s+c.factures.filter(f=>f.echeance&&f.echeance<today).reduce((ss,f)=>ss+f.montant,0),0);
 const ratioCouv=totDettes>0?(totCreances/totDettes*100):999;
-// Health score
 let score=100;
 if(joursSurvie<30)score-=40;else if(joursSurvie<60)score-=20;
 if(ratioCouv<50)score-=30;else if(ratioCouv<80)score-=15;
@@ -385,7 +400,7 @@ const hist=Object.values(D.historiqueSoldes);
 if(hist.length>=3){const trend=hist[hist.length-1]-hist[hist.length-3];if(trend<-100000)score-=10;}
 const health=score>=70?'green':score>=40?'orange':'red';
 const healthLabel=score>=70?'Santé financière correcte':score>=40?'Vigilance requise':'Situation critique';
-return{totSal,totAdmin,totCred,totLog,burnRate,soldeBrut,soldeAjuste,totPEC,joursSurvie,totDettes,totCreances,crRetard,ratioCouv,health,healthLabel,score};
+return{totSal,totAdmin,totCred,totLog,burnRate,soldeBrut,soldeAjuste,totPEC,joursSurvie,totDettes,totCreances,crRetard,ratioCouv,health,healthLabel,score,caisseSolde};
 }
 
 // ===== RENDER ALL =====
@@ -399,10 +414,13 @@ renderDettes();
 renderCreances();
 renderPipeline();
 renderCalendrier();
+renderCaisse();
+renderAchats();
+renderVentes();
 renderCharts(cd);
 }
 
-// ===== HEALTH =====
+// ===== HEALTH BAR =====
 function renderHealth(cd){
 document.getElementById('health-bar').innerHTML=`<div class="health-dot ${cd.health}"></div><div class="health-txt">${cd.healthLabel} (score: ${cd.score}/100) — Solde ajusté: ${fmtK(cd.soldeAjuste)} | Survie: ${cd.joursSurvie}j | Ratio couverture: ${Math.round(cd.ratioCouv)}%</div>`;
 }
@@ -410,26 +428,17 @@ document.getElementById('health-bar').innerHTML=`<div class="health-dot ${cd.hea
 // ===== OVERVIEW =====
 function renderOverview(cd){
 const today=new Date().toISOString().slice(0,10);
-// Build notifications by category
 if(!D.dismissedAlerts)D.dismissedAlerts=[];
 const notifs={critique:[],fournisseurs:[],creances:[],echeances:[],actions:[]};
-// Critiques
 if(cd.joursSurvie<30)notifs.critique.push({id:'_js',txt:`${cd.joursSurvie} jours de trésorerie restants`,cls:'alrt-d'});
 if(cd.soldeAjuste<D.seuilAlerte)notifs.critique.push({id:'_seuil',txt:`Solde sous le seuil d'alerte (${fmtK(D.seuilAlerte)})`,cls:'alrt-d'});
-// Fournisseurs
-D.dettes.filter(x=>x.priorite==='URGENT').forEach(x=>{notifs.fournisseurs.push({id:'_du_'+x.id,txt:`${x.nom} — URGENT — ${fmtK(x.montant)}`,cls:'alrt-w'});});
-// Créances
+D.dettes.forEach(x=>{const paid=x.paiements?x.paiements.reduce((ss,p)=>ss+p.montant,0):0;const reste=x.montant-paid;if(reste>0){const cls=x.priorite==='URGENT'?'alrt-d':x.statut==='Actif'?'alrt-w':'alrt-i';notifs.fournisseurs.push({id:'_du_'+x.id,txt:`${x.nom} — ${x.priorite} — Reste: ${fmtK(reste)}`,cls});}});
 if(cd.crRetard>0)notifs.creances.push({id:'_crtot',txt:`Total créances en retard: ${fmtK(cd.crRetard)}`,cls:'alrt-d'});
 D.creances.filter(c=>!c.classeeSansSuite).forEach(c=>{c.factures.forEach(f=>{if(f.echeance){const d=daysBetween(f.echeance,today);if(d>60)notifs.creances.push({id:'_cr_'+f.id,txt:`${c.client} — Facture ${f.ref} en retard de ${d} jours (${fmtK(f.montant)})`,cls:'alrt-w'});}});});
-// Échéances J-3
 D.calendrier.forEach(c=>{const d=daysBetween(today,c.date);if(d>=0&&d<=3)notifs.echeances.push({id:'_cal_'+c.id,txt:`J-${d}: ${c.desc}`,cls:'alrt-i'});});
-// Actions
 if(D.todoAlerts)D.todoAlerts.filter(t=>!t.done).forEach(t=>{notifs.actions.push({id:'_todo_'+t.id,txt:t.desc,cls:'alrt-w',isTodo:true,todoId:t.id});});
-// Filter dismissed
 Object.keys(notifs).forEach(cat=>{notifs[cat]=notifs[cat].filter(n=>!D.dismissedAlerts.includes(n.id));});
-// Render categorized accordions
 const catLabels={critique:'🚨 Alertes critiques',fournisseurs:'📋 Fournisseurs',creances:'⏰ Créances',echeances:'📅 Échéances proches',actions:'📌 Actions à mener'};
-const catIcons={critique:'🚨',fournisseurs:'📋',creances:'⏰',echeances:'📅',actions:'📌'};
 let notifsHtml='<div class="stitle">🔔 Notifications</div>';
 let totalNotifs=Object.values(notifs).reduce((s,arr)=>s+arr.length,0);
 if(totalNotifs===0)notifsHtml+='<div class="alrt alrt-i" style="text-align:center">✅ Aucune notification en cours</div>';
@@ -443,9 +452,7 @@ return`<div class="${n.cls}" style="display:flex;justify-content:space-between;a
 }).join('');
 notifsHtml+=`<div class="acc"><div class="acc-h ${accOpen?'open':''}" onclick="window.toggleAcc('notif_${cat}')"><span>${catLabels[cat]} <span class="tag tag-u" style="margin-left:6px">${items.length}</span></span><span class="arr">▶</span></div><div class="acc-b">${inner}</div></div>`;
 });
-// Add todo button
 notifsHtml+=`<div style="margin-top:8px;margin-bottom:16px"><button class="btn btn-sm btn-p" onclick="window.addTodoPrompt()">+ Action</button> <button class="btn btn-sm btn-s" onclick="window.resetDismissed()">Réafficher tout</button></div>`;
-
 document.getElementById('mod-overview').innerHTML=`
 <div class="stitle">🏠 Vue d'ensemble</div>
 ${notifsHtml}
@@ -472,21 +479,18 @@ function renderTresorerie(cd){
 const sm=D.soldeManuel;
 const accId=(cat)=>openAccs.has(cat)?'open':'';
 const mkAcc=(id,title,total,content)=>`<div class="acc"><div class="acc-h ${accId(id)}" onclick="window.toggleAcc('${id}')"><span>${title} — <b>${fmtK(total)}</b></span><span class="arr">▶</span></div><div class="acc-b">${content}</div></div>`;
-// Salaires
 let salRows=D.charges.salaires.map(s=>`<tr><td>${s.nom}</td><td>${s.role}</td><td style="text-align:right;font-weight:600">${fmtK(s.net)}</td><td><button class="btn btn-sm btn-s" onclick="window.editSalaire('${s.id}')">✎</button> <button class="btn btn-sm btn-d" onclick="window.delSalaire('${s.id}')">✕</button></td></tr>`).join('');
 salRows+=`<tr><td colspan="4"><button class="btn btn-sm btn-p" onclick="window.addSalaire()">+ Employé</button></td></tr>`;
 const salTable=`<table><thead><tr><th>Nom</th><th>Poste</th><th style="text-align:right">Net</th><th></th></tr></thead><tbody>${salRows}</tbody></table>`;
-// Generic charge table
 const mkChargeTable=(arr,cat)=>{let rows=arr.map(x=>`<tr><td>${x.nom}</td><td style="text-align:right;font-weight:600">${fmtK(x.montant)}</td><td><button class="btn btn-sm btn-s" onclick="window.editCharge('${cat}','${x.id}')">✎</button> <button class="btn btn-sm btn-d" onclick="window.delCharge('${cat}','${x.id}')">✕</button></td></tr>`).join('');
 rows+=`<tr><td colspan="3"><button class="btn btn-sm btn-p" onclick="window.addCharge('${cat}')">+ Ligne</button></td></tr>`;
 return`<table><thead><tr><th>Libellé</th><th style="text-align:right">Montant</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;};
-
 document.getElementById('mod-tresorerie').innerHTML=`
 <div class="stitle">💰 Trésorerie</div>
 <div class="cards">
 <div class="card"><div class="card-l">Compte principal</div><div class="card-v">${fmtK(sm.comptePrincipal)}</div><div class="card-s"><button class="btn btn-sm btn-s" onclick="window.editSolde()">Modifier</button></div></div>
 <div class="card"><div class="card-l">Compte BIS</div><div class="card-v">${fmtK(sm.compteBis)}</div></div>
-<div class="card"><div class="card-l">Caisse</div><div class="card-v">${fmtK(sm.caisse)}</div></div>
+<div class="card"><div class="card-l">Caisse</div><div class="card-v">${fmtK(cd.caisseSolde)}</div><div class="card-s">Calculé depuis journal de caisse</div></div>
 <div class="card"><div class="card-l">Solde ajusté</div><div class="card-v ${cd.soldeAjuste<100000?'red':'green'}">${fmtK(cd.soldeAjuste)}</div><div class="card-s">Après paiements en cours</div></div>
 </div>
 <div class="stitle">📄 Importer un relevé bancaire (PDF Société Générale)</div>
@@ -511,13 +515,12 @@ ${mkAcc('log','Logistique',cd.totLog,mkChargeTable(D.charges.logistique,'logisti
 renderPEC();
 }
 
-// ===== PEC TABLE =====
 function renderPEC(){
 const el=document.getElementById('pec-table');
 if(!el)return;
 if(!D.paiementsEnCours.length){el.innerHTML='<p style="color:var(--text2)">Aucun paiement en cours</p>';return;}
-let rows=D.paiementsEnCours.map(p=>`<tr><td>${p.fournisseur}</td><td style="text-align:right;font-weight:600">${fmtK(p.montant)}</td><td>${p.moyen}</td><td>${fmtD(p.date)}</td><td><button class="btn btn-sm btn-d" onclick="window.delPEC('${p.id}')">✕</button></td></tr>`).join('');
-el.innerHTML=`<table><thead><tr><th>Fournisseur</th><th style="text-align:right">Montant</th><th>Moyen</th><th>Date</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+let rows=D.paiementsEnCours.map(p=>`<tr><td>${p.fournisseur}</td><td style="text-align:right;font-weight:600">${fmtK(p.montant)}</td><td>${p.moyen}</td><td>${fmtD(p.date)}</td><td>${p.motif||'—'}</td><td><button class="btn btn-sm btn-d" onclick="window.delPEC('${p.id}')">✕</button></td></tr>`).join('');
+el.innerHTML=`<table><thead><tr><th>Fournisseur</th><th style="text-align:right">Montant</th><th>Moyen</th><th>Date</th><th>Motif</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 // ===== DETTES =====
@@ -539,8 +542,7 @@ const pct=x.montant>0?Math.round(paid/x.montant*100):0;
 const accOpen=openAccs.has('det_'+x.id);
 let hist='';
 if(x.paiements&&x.paiements.length){hist=x.paiements.map(p=>`<div style="font-size:11px;padding:2px 0">${fmtD(p.date)} — ${fmtK(p.montant)} (${p.moyen||'—'})</div>`).join('');}
-return`<tr><td style="font-weight:600">${x.nom}</td><td style="text-align:right">${fmtK(x.montant)}</td><td style="text-align:right;color:var(--grn)">${fmtK(paid)}</td><td style="text-align:right;font-weight:600">${fmtK(reste)}</td><td><div style="width:60px;height:4px;background:var(--bg3);border-radius:2px"><div style="width:${pct}%;height:100%;background:var(--grn);border-radius:2px"></div></div><span style="font-size:10px">${pct}%</span></td><td>${x.statut==='Actif'?'<span class="tag tag-a">Actif</span>':'<span class="tag tag-i">Inactif</span>'}</td><td>${x.convention}</td><td>${pTag(x.priorite)}</td><td>${fmtD(x.debut)}</td><td><button class="btn btn-sm btn-s" onclick="window.editDette('${x.id}')">✎</button> <button class="btn btn-sm btn-d" onclick="window.delDette('${x.id}')">✕</button></td></tr>${accOpen?`<tr><td colspan="10" style="background:var(--bg2);padding:8px 14px"><b>Historique paiements:</b>${hist||' Aucun'}</td></tr>`:''}`;}).join('');
-
+return`<tr onclick="window.toggleAcc('det_${x.id}')" style="cursor:pointer"><td style="font-weight:600">${x.nom}</td><td style="text-align:right">${fmtK(x.montant)}</td><td style="text-align:right;color:var(--grn)">${fmtK(paid)}</td><td style="text-align:right;font-weight:600">${fmtK(reste)}</td><td><div style="width:60px;height:4px;background:var(--bg3);border-radius:2px"><div style="width:${pct}%;height:100%;background:var(--grn);border-radius:2px"></div></div><span style="font-size:10px">${pct}%</span></td><td>${x.statut==='Actif'?'<span class="tag tag-a">Actif</span>':'<span class="tag tag-i">Inactif</span>'}</td><td>${x.convention}</td><td>${pTag(x.priorite)}</td><td>${fmtD(x.debut)}</td><td><button class="btn btn-sm btn-s" onclick="event.stopPropagation();window.editDette('${x.id}')">✎</button> <button class="btn btn-sm btn-d" onclick="event.stopPropagation();window.delDette('${x.id}')">✕</button></td></tr>${accOpen?`<tr><td colspan="10" style="background:var(--bg2);padding:8px 14px"><b>Historique paiements:</b>${hist||' Aucun'}</td></tr>`:''}`;}).join('');
 document.getElementById('mod-dettes').innerHTML=`
 <div class="stitle">📋 Dettes fournisseurs</div>
 <div class="cards">
@@ -577,17 +579,15 @@ let html=`<div class="stitle">📊 Créances clients</div>
 <div class="card"><div class="card-l">Délai moyen encaissement</div><div class="card-v orange">${calcDelaiMoyen()} j</div></div>
 </div>
 <div style="margin-bottom:10px"><button class="btn btn-p" onclick="window.addCreanceClient()">+ Client</button></div>`;
-// Active clients
 crActives.forEach(c=>{
 const accOpen=openAccs.has('cr_'+c.id);
 const totC=c.factures.reduce((s,f)=>s+f.montant,0);
 let facRows=c.factures.map(f=>`<tr><td>${f.ref}</td><td>${f.desc}</td><td style="text-align:right;font-weight:600">${fmtK(f.montant)}</td><td>${fmtD(f.echeance)}</td><td>${agingTag(f.echeance)}</td><td><button class="btn btn-sm btn-s" onclick="window.editFacture('${c.id}','${f.id}')">✎</button> <button class="btn btn-sm btn-d" onclick="window.delFacture('${c.id}','${f.id}')">✕</button></td></tr>`).join('');
 facRows+=`<tr><td colspan="6"><button class="btn btn-sm btn-p" onclick="window.addFacture('${c.id}')">+ Facture</button></td></tr>`;
-const isFaible=c.client.toLowerCase().includes('prob') || c.client.toLowerCase().includes('faible') || c.client.toLowerCase().includes('anciennes');
+const isFaible=c.client.toLowerCase().includes('prob')||c.client.toLowerCase().includes('faible')||c.client.toLowerCase().includes('anciennes');
 const csBtn=isFaible?`<button class="btn btn-sm btn-d" onclick="event.stopPropagation();window.classerSansSuite('${c.id}')">Classer sans suite</button>`:'';
 html+=`<div class="acc"><div class="acc-h ${accOpen?'open':''}" onclick="window.toggleAcc('cr_${c.id}')"><span>${c.client} — <b>${fmtK(totC)}</b></span><div style="display:flex;gap:6px;align-items:center"><button class="btn btn-sm btn-s" onclick="event.stopPropagation();window.editCreanceClient('${c.id}')">✎</button>${csBtn}<span class="arr">▶</span></div></div><div class="acc-b"><table><thead><tr><th>Réf.</th><th>Description</th><th style="text-align:right">Montant</th><th>Échéance</th><th>Aging</th><th></th></tr></thead><tbody>${facRows}</tbody></table></div></div>`;
 });
-// Classées sans suite
 if(crClassees.length){
 html+=`<div class="stitle" style="margin-top:16px;border-color:var(--text2)">🗃️ Classées sans suite</div>`;
 crClassees.forEach(c=>{const totC=c.factures.reduce((s,f)=>s+f.montant,0);
@@ -636,6 +636,237 @@ document.getElementById('mod-calendrier').innerHTML=`
 <div class="card">${list||'<p style="padding:12px;color:var(--text2)">Aucun rappel</p>'}</div>`;
 }
 
+// ===== CAISSE (NEW MODULE) =====
+function renderCaisse(){
+const ca=D.caisse;
+const[y,m]=ca.moisCourant.split('-').map(Number);
+const moisLabel=getMoisLabel(y,m);
+// Filter ops for current month
+const moisKey=ca.moisCourant;
+const opsAll=[...ca.operations].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+const opsMois=opsAll.filter(op=>op.date&&op.date.startsWith(moisKey));
+// Calculate running solde for this month
+// Solde initial for this month = soldeInitial + all ops before this month
+let soldeAvant=ca.soldeInitial||0;
+opsAll.forEach(op=>{if(op.date&&op.date<moisKey+'-01'){soldeAvant+=(op.entree||0)-(op.sortie||0);}});
+let runSolde=soldeAvant;
+let rows=opsMois.map(op=>{
+runSolde+=(op.entree||0)-(op.sortie||0);
+return`<tr>
+<td>${fmtD(op.date)}</td>
+<td><span class="tag ${op.type==='Alimentation'?'tag-a':'tag-u'}">${op.type}</span></td>
+<td>${op.desc||'—'}</td>
+<td style="text-align:right;color:var(--grn)">${op.entree?fmtK(op.entree):''}</td>
+<td style="text-align:right;color:var(--dgr)">${op.sortie?fmtK(op.sortie):''}</td>
+<td style="text-align:right;font-weight:600">${fmtK(runSolde)}</td>
+<td>${op.commentaire||'—'}</td>
+<td><button class="btn btn-sm btn-d" onclick="window.delCaisseOp('${op.id}')">✕</button></td>
+</tr>`;}).join('');
+if(!rows)rows='<tr><td colspan="8" style="text-align:center;color:var(--text2);padding:20px">Aucune opération ce mois</td></tr>';
+const soldeFinal=runSolde;
+document.getElementById('mod-caisse').innerHTML=`
+<div class="stitle">🗃️ Journal de caisse</div>
+<div class="cards">
+<div class="card"><div class="card-l">Solde initial du mois</div><div class="card-v">${fmtK(soldeAvant)}</div></div>
+<div class="card"><div class="card-l">Solde actuel caisse</div><div class="card-v green">${fmtK(soldeFinal)}</div></div>
+<div class="card"><div class="card-l">Opérations ce mois</div><div class="card-v">${opsMois.length}</div></div>
+</div>
+<div class="caisse-nav">
+<button onclick="window.caissePrevMois()">◀</button>
+<span>${moisLabel}</span>
+<button onclick="window.caisseNextMois()">▶</button>
+</div>
+<div style="margin-bottom:10px"><button class="btn btn-p" onclick="window.addCaisseOp()">+ Opération</button></div>
+<div class="tw"><table><thead><tr>
+<th>Date</th><th>Type</th><th>Description</th>
+<th style="text-align:right">Entrée</th><th style="text-align:right">Sortie</th>
+<th style="text-align:right">Solde</th><th>Commentaire</th><th></th>
+</tr></thead><tbody>${rows}</tbody></table></div>
+<div class="frow" style="margin-top:8px">
+<div class="fgrp"><label>Solde initial (1ère utilisation)</label><input type="number" value="${ca.soldeInitial||0}" onchange="window.updateCaisseSoldeInit(this.value)"></div>
+</div>`;
+}
+
+// ===== ACHATS MODULE =====
+function renderAchats(){
+const rc=D.achats.recap||[];
+const totTTC=rc.reduce((s,x)=>s+(x.montantTTC||0),0);
+const totRegle=rc.reduce((s,x)=>s+(x.montantRegle||0),0);
+const totReste=rc.reduce((s,x)=>s+(x.resteAPayer||0),0);
+const nbFrns=rc.length;
+let rows=rc.map(x=>{
+const pct=x.montantTTC>0?Math.round((x.montantRegle||0)/x.montantTTC*100):0;
+return`<tr><td style="font-weight:600">${x.fournisseur}</td><td style="text-align:right">${fmtK(x.montantTTC)}</td><td style="text-align:right;color:var(--grn)">${fmtK(x.montantRegle)}</td><td style="text-align:right;font-weight:600;color:${x.resteAPayer>0?'var(--dgr)':'var(--grn)'}">${fmtK(x.resteAPayer)}</td><td><div style="width:60px;height:4px;background:var(--bg3);border-radius:2px"><div style="width:${pct}%;height:100%;background:var(--grn);border-radius:2px"></div></div><span style="font-size:10px">${pct}%</span></td></tr>`;
+}).join('');
+if(!rows)rows='<tr><td colspan="5" style="text-align:center;color:var(--text2);padding:20px">Aucune donnée — Importez un fichier Achats</td></tr>';
+const imports=D.achats.imports||[];
+let impList=imports.map((im,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--brd);font-size:11px"><span>📄 ${im.nom} — ${im.nbFrns} fournisseurs — ${fmtD(im.date)}</span><button class="btn btn-sm btn-d" onclick="window.delAchatImport(${i})">✕</button></div>`).join('');
+document.getElementById('mod-achats').innerHTML=`
+<div class="stitle">🛒 Achats fournisseurs</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div>
+<div class="cards" style="grid-template-columns:1fr 1fr 1fr">
+<div class="card"><div class="card-l">Total TTC</div><div class="card-v red">${fmtK(totTTC)}</div></div>
+<div class="card"><div class="card-l">Total réglé</div><div class="card-v green">${fmtK(totRegle)}</div></div>
+<div class="card"><div class="card-l">Reste à payer</div><div class="card-v red">${fmtK(totReste)}</div><div class="card-s">${nbFrns} fournisseurs</div></div>
+</div>
+<div class="tw"><table><thead><tr><th>Fournisseur</th><th style="text-align:right">Montant TTC</th><th style="text-align:right">Réglé</th><th style="text-align:right">Reste</th><th>Progr.</th></tr></thead><tbody>${rows}</tbody></table></div>
+</div>
+<div>
+<div class="stitle" style="font-size:14px">📤 Importer fichier Achats (.xlsx)</div>
+<div class="upload-zone" onclick="document.getElementById('achats-input').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="event.preventDefault();this.classList.remove('dragover');window.handleAchatsXLSX(event.dataTransfer.files)">
+<div style="font-size:24px;margin-bottom:8px">📊</div>
+<div>Glisser un fichier .xlsx ici ou cliquer</div>
+<input type="file" id="achats-input" accept=".xlsx,.xls" style="display:none" onchange="window.handleAchatsXLSX(this.files)">
+</div>
+<div id="achats-import-status"></div>
+${impList?'<div class="stitle" style="font-size:13px;margin-top:12px">Historique imports</div>'+impList:''}
+<div style="margin-top:12px"><button class="btn btn-sm btn-d" onclick="window.clearAchats()">Réinitialiser achats</button></div>
+</div>
+</div>`;
+}
+
+// ===== VENTES MODULE =====
+function renderVentes(){
+const rc=D.ventes.recap||[];
+const totTTC=rc.reduce((s,x)=>s+(x.montantTTC||0),0);
+const totRegle=rc.reduce((s,x)=>s+(x.montantRegle||0),0);
+const totReste=rc.reduce((s,x)=>s+(x.resteAPayer||0),0);
+const nbClients=rc.length;
+let rows=rc.map(x=>{
+const pct=x.montantTTC>0?Math.round((x.montantRegle||0)/x.montantTTC*100):0;
+return`<tr><td style="font-weight:600">${x.client}</td><td style="text-align:right">${fmtK(x.montantTTC)}</td><td style="text-align:right;color:var(--grn)">${fmtK(x.montantRegle)}</td><td style="text-align:right;font-weight:600;color:${x.resteAPayer>0?'var(--dgr)':'var(--grn)'}">${fmtK(x.resteAPayer)}</td><td><div style="width:60px;height:4px;background:var(--bg3);border-radius:2px"><div style="width:${pct}%;height:100%;background:var(--grn);border-radius:2px"></div></div><span style="font-size:10px">${pct}%</span></td></tr>`;
+}).join('');
+if(!rows)rows='<tr><td colspan="5" style="text-align:center;color:var(--text2);padding:20px">Aucune donnée — Importez un fichier Ventes</td></tr>';
+const imports=D.ventes.imports||[];
+let impList=imports.map((im,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--brd);font-size:11px"><span>📄 ${im.nom} — ${im.nbClients} clients — ${fmtD(im.date)}</span><button class="btn btn-sm btn-d" onclick="window.delVenteImport(${i})">✕</button></div>`).join('');
+document.getElementById('mod-ventes').innerHTML=`
+<div class="stitle">💵 Ventes clients</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div>
+<div class="cards" style="grid-template-columns:1fr 1fr 1fr">
+<div class="card"><div class="card-l">Total TTC</div><div class="card-v blue">${fmtK(totTTC)}</div></div>
+<div class="card"><div class="card-l">Total réglé</div><div class="card-v green">${fmtK(totRegle)}</div></div>
+<div class="card"><div class="card-l">Reste à encaisser</div><div class="card-v orange">${fmtK(totReste)}</div><div class="card-s">${nbClients} clients</div></div>
+</div>
+<div class="tw"><table><thead><tr><th>Client</th><th style="text-align:right">Montant TTC</th><th style="text-align:right">Réglé</th><th style="text-align:right">Reste</th><th>Progr.</th></tr></thead><tbody>${rows}</tbody></table></div>
+</div>
+<div>
+<div class="stitle" style="font-size:14px">📤 Importer fichier Ventes (.xlsx)</div>
+<div class="upload-zone" onclick="document.getElementById('ventes-input').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="event.preventDefault();this.classList.remove('dragover');window.handleVentesXLSX(event.dataTransfer.files)">
+<div style="font-size:24px;margin-bottom:8px">📊</div>
+<div>Glisser un fichier .xlsx ici ou cliquer</div>
+<input type="file" id="ventes-input" accept=".xlsx,.xls" style="display:none" onchange="window.handleVentesXLSX(this.files)">
+</div>
+<div id="ventes-import-status"></div>
+${impList?'<div class="stitle" style="font-size:13px;margin-top:12px">Historique imports</div>'+impList:''}
+<div style="margin-top:12px"><button class="btn btn-sm btn-d" onclick="window.clearVentes()">Réinitialiser ventes</button></div>
+</div>
+</div>`;
+}
+
+// ===== XLSX PARSER FUNCTIONS =====
+function parseRecapSheet(ws){
+const data=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
+const results=[];
+for(let i=0;i<data.length;i++){
+const row=data[i];
+if(!row||!row.length)continue;
+// Find rows with actual data (skip headers, totals, empty)
+const firstCell=row.find(c=>c!=null&&String(c).trim()!=='');
+if(!firstCell)continue;
+const str=String(firstCell).trim().toLowerCase();
+if(str==='fournisseurs'||str==='client'||str==='total'||str==='total:'||str==='recap'||str==='recap frns'||str==='montant ttc'||str==='')continue;
+// Look for numeric columns - montant TTC, réglé, reste
+const nums=row.filter(c=>c!=null&&typeof c==='number');
+if(nums.length>=2){
+// Pattern: Name, MontantTTC, MontantRegle, ResteAPayer
+let name=null,ttc=0,regle=0,reste=0;
+// Find the name (first non-null string)
+for(const c of row){if(c!=null&&typeof c==='string'&&c.trim()!==''){name=c.trim();break;}}
+if(!name&&typeof firstCell==='string')name=firstCell.trim();
+if(!name)continue;
+// Find numbers in order
+const numVals=[];
+for(const c of row){if(c!=null&&typeof c==='number')numVals.push(c);}
+if(numVals.length>=3){ttc=numVals[0];regle=numVals[1];reste=numVals[2];}
+else if(numVals.length===2){ttc=numVals[0];reste=numVals[1];regle=ttc-reste;}
+else if(numVals.length===1){ttc=numVals[0];}
+if(ttc===0&&regle===0&&reste===0)continue;
+results.push({name,montantTTC:Math.round(Math.abs(ttc)),montantRegle:Math.round(Math.abs(regle)),resteAPayer:Math.round(Math.abs(reste))});
+}
+}
+return results;
+}
+
+window.handleAchatsXLSX=async(files)=>{
+if(!files||!files.length)return;
+const status=document.getElementById('achats-import-status');
+status.innerHTML='<p>⏳ Traitement en cours...</p>';
+try{
+const file=files[0];
+const buf=await file.arrayBuffer();
+const wb=XLSX.read(buf,{type:'array'});
+// Find Recap sheet
+const recapName=wb.SheetNames.find(s=>s.trim().toLowerCase().startsWith('recap'));
+if(!recapName){status.innerHTML='<div class="alrt alrt-d">Feuille "Recap" introuvable dans le fichier.</div>';return;}
+const ws=wb.Sheets[recapName];
+const parsed=parseRecapSheet(ws);
+if(!parsed.length){status.innerHTML='<div class="alrt alrt-d">Aucune donnée exploitable trouvée dans la feuille Recap.</div>';return;}
+// Map to achats recap
+D.achats.recap=parsed.map(p=>({fournisseur:p.name,montantTTC:p.montantTTC,montantRegle:p.montantRegle,resteAPayer:p.resteAPayer}));
+// Log import
+D.achats.imports.push({nom:file.name,date:new Date().toISOString().slice(0,10),nbFrns:parsed.length});
+// Sync dettes: update existing or add new
+parsed.forEach(p=>{
+const existing=D.dettes.find(d=>d.nom.toLowerCase().replace(/\s+/g,'')===p.name.toLowerCase().replace(/\s+/g,''));
+if(existing){
+const totalPaid=existing.paiements?existing.paiements.reduce((s,pp)=>s+pp.montant,0):0;
+// Update montant if higher in file
+if(p.montantTTC>existing.montant)existing.montant=p.montantTTC;
+}
+});
+await save();
+status.innerHTML=`<div class="alrt alrt-i">✅ ${parsed.length} fournisseurs importés depuis "${file.name}"</div>`;
+renderAll();
+}catch(e){console.error(e);status.innerHTML='<div class="alrt alrt-d">Erreur: '+e.message+'</div>';}
+};
+
+window.handleVentesXLSX=async(files)=>{
+if(!files||!files.length)return;
+const status=document.getElementById('ventes-import-status');
+status.innerHTML='<p>⏳ Traitement en cours...</p>';
+try{
+const file=files[0];
+const buf=await file.arrayBuffer();
+const wb=XLSX.read(buf,{type:'array'});
+const recapName=wb.SheetNames.find(s=>s.trim().toLowerCase().startsWith('recap'));
+if(!recapName){status.innerHTML='<div class="alrt alrt-d">Feuille "Recap" introuvable dans le fichier.</div>';return;}
+const ws=wb.Sheets[recapName];
+const parsed=parseRecapSheet(ws);
+if(!parsed.length){status.innerHTML='<div class="alrt alrt-d">Aucune donnée exploitable trouvée dans la feuille Recap.</div>';return;}
+D.ventes.recap=parsed.map(p=>({client:p.name,montantTTC:p.montantTTC,montantRegle:p.montantRegle,resteAPayer:p.resteAPayer}));
+D.ventes.imports.push({nom:file.name,date:new Date().toISOString().slice(0,10),nbClients:parsed.length});
+// Sync créances: update existing client totals
+parsed.forEach(p=>{
+const existing=D.creances.find(c=>c.client.toLowerCase().replace(/\s+/g,'').includes(p.name.toLowerCase().replace(/\s+/g,'').slice(0,6)));
+if(existing){
+// Recalc total from factures or from file
+const facTotal=existing.factures.reduce((s,f)=>s+f.montant,0);
+existing.total=Math.max(facTotal,p.montantTTC);
+}
+});
+await save();
+status.innerHTML=`<div class="alrt alrt-i">✅ ${parsed.length} clients importés depuis "${file.name}"</div>`;
+renderAll();
+}catch(e){console.error(e);status.innerHTML='<div class="alrt alrt-d">Erreur: '+e.message+'</div>';}
+};
+
+window.delAchatImport=(idx)=>{if(confirm('Supprimer cet import ?')){D.achats.imports.splice(idx,1);save();}};
+window.delVenteImport=(idx)=>{if(confirm('Supprimer cet import ?')){D.ventes.imports.splice(idx,1);save();}};
+window.clearAchats=()=>{if(confirm('Réinitialiser toutes les données achats ?')){D.achats={imports:[],recap:[]};save();}};
+window.clearVentes=()=>{if(confirm('Réinitialiser toutes les données ventes ?')){D.ventes={imports:[],recap:[]};save();}};
+
 // ===== CHARTS =====
 function renderCharts(cd){
 const isDk=document.body.classList.contains('dark');
@@ -649,7 +880,6 @@ const ch3=document.getElementById('ch-sol');
 if(ch3){const h=D.historiqueSoldes;CI.sol=new Chart(ch3,{type:'line',data:{labels:Object.keys(h),datasets:[{label:'Solde',data:Object.values(h),borderColor:'#E30613',backgroundColor:'rgba(227,6,19,.1)',fill:true,tension:.3}]},options:{responsive:true,scales:{x:{ticks:{color:tc},grid:{color:gc}},y:{ticks:{color:tc,callback:v=>fmt(v)},grid:{color:gc}}},plugins:{legend:{display:false}}}});}
 const ch4=document.getElementById('ch-proj');
 if(ch4){
-const today2=new Date().toISOString().slice(0,10);
 const projL=['Mois 0','Mois 1','Mois 2','Mois 3'];
 const projD=[cd.soldeAjuste];
 const crKeys=D.creances.filter(c=>!c.classeeSansSuite);
@@ -659,13 +889,12 @@ projD.push(projD[0]-cd.burnRate+encM1);projD.push(projD[1]-cd.burnRate+encM2);pr
 CI.proj=new Chart(ch4,{type:'line',data:{labels:projL,datasets:[{label:'Projection',data:projD,borderColor:'#2980b9',backgroundColor:'rgba(41,128,185,.1)',fill:true,tension:.3},{label:'Seuil',data:[D.seuilAlerte,D.seuilAlerte,D.seuilAlerte,D.seuilAlerte],borderColor:'#e74c3c',borderDash:[5,5],pointRadius:0}]},options:{responsive:true,scales:{x:{ticks:{color:tc},grid:{color:gc}},y:{ticks:{color:tc,callback:v=>fmt(v)},grid:{color:gc}}},plugins:{legend:{labels:{color:tc,boxWidth:12,font:{size:10}}}}}});}
 }
 
-// ===== CRUD FUNCTIONS =====
+// ===== ALL CRUD FUNCTIONS =====
 // -- Solde manuel --
 window.editSolde=()=>{const sm=D.soldeManuel;showModal(`<h3>Modifier soldes</h3>
 <div class="frow"><div class="fgrp"><label>Compte principal</label><input id="m-cp" type="number" value="${sm.comptePrincipal}"></div><div class="fgrp"><label>Compte BIS</label><input id="m-cb" type="number" value="${sm.compteBis}"></div></div>
-<div class="frow"><div class="fgrp"><label>Caisse</label><input id="m-ca" type="number" value="${sm.caisse}"></div><div class="fgrp"><label>Date</label><input id="m-dt" type="date" value="${sm.date}"></div></div>
-<div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="D.soldeManuel={comptePrincipal:+document.getElementById('m-cp').value,compteBis:+document.getElementById('m-cb').value,caisse:+document.getElementById('m-ca').value,date:document.getElementById('m-dt').value};save();window.closeModal()">Enregistrer</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
-// -- Seuil --
+<div class="frow"><div class="fgrp"><label>Date</label><input id="m-dt" type="date" value="${sm.date}"></div></div>
+<div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="D.soldeManuel.comptePrincipal=+document.getElementById('m-cp').value;D.soldeManuel.compteBis=+document.getElementById('m-cb').value;D.soldeManuel.date=document.getElementById('m-dt').value;save();window.closeModal()">Enregistrer</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
 window.updateSeuil=(v)=>{D.seuilAlerte=+v;save();};
 window.dismissAlert=(id)=>{if(!D.dismissedAlerts)D.dismissedAlerts=[];if(!D.dismissedAlerts.includes(id))D.dismissedAlerts.push(id);save();};
 window.resetDismissed=()=>{D.dismissedAlerts=[];save();};
@@ -674,11 +903,11 @@ window.addSalaire=()=>{showModal(`<h3>Nouvel employé</h3><div class="frow"><div
 window.editSalaire=(id)=>{const s=D.charges.salaires.find(x=>x.id===id);if(!s)return;showModal(`<h3>Modifier employé</h3><div class="frow"><div class="fgrp"><label>Nom</label><input id="m-sn" value="${s.nom}"></div><div class="fgrp"><label>Poste</label><input id="m-sr" value="${s.role}"></div></div><div class="frow"><div class="fgrp"><label>Salaire net</label><input id="m-sm" type="number" value="${s.net}"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="const x=D.charges.salaires.find(s=>s.id==='${id}');x.nom=document.getElementById('m-sn').value;x.role=document.getElementById('m-sr').value;x.net=+document.getElementById('m-sm').value;save();window.closeModal()">Enregistrer</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
 window.delSalaire=(id)=>{if(confirm('Supprimer cet employé ?')){D.charges.salaires=D.charges.salaires.filter(x=>x.id!==id);save();}};
 // -- Charges génériques --
-window.addCharge=(cat)=>{showModal(`<h3>Nouvelle charge</h3><div class="frow"><div class="fgrp"><label>Libellé</label><input id="m-cn"></div><div class="fgrp"><label>Montant</label><input id="m-cm" type="number"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="D.charges.${cat}.push({id:uid(),nom:document.getElementById('m-cn').value,montant:+document.getElementById('m-cm').value});save();window.closeModal()">Ajouter</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
+window.addCharge=(cat)=>{showModal(`<h3>Nouvelle charge</h3><div class="frow"><div class="fgrp"><label>Libellé</label><input id="m-cn"></div><div class="fgrp"><label>Montant</label><input id="m-cm" type="number"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="D.charges['${cat}'].push({id:uid(),nom:document.getElementById('m-cn').value,montant:+document.getElementById('m-cm').value});save();window.closeModal()">Ajouter</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
 window.editCharge=(cat,id)=>{const x=D.charges[cat].find(c=>c.id===id);if(!x)return;showModal(`<h3>Modifier charge</h3><div class="frow"><div class="fgrp"><label>Libellé</label><input id="m-cn" value="${x.nom}"></div><div class="fgrp"><label>Montant</label><input id="m-cm" type="number" value="${x.montant}"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="const c=D.charges['${cat}'].find(c=>c.id==='${id}');c.nom=document.getElementById('m-cn').value;c.montant=+document.getElementById('m-cm').value;save();window.closeModal()">Enregistrer</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
 window.delCharge=(cat,id)=>{if(confirm('Supprimer ?')){D.charges[cat]=D.charges[cat].filter(x=>x.id!==id);save();}};
-// -- PEC --
-window.addPEC=()=>{const fList=D.dettes.map(d=>`<option value="${d.nom}">${d.nom}</option>`).join('');showModal(`<h3>Paiement en cours</h3><div class="frow"><div class="fgrp"><label>Fournisseur</label><select id="m-pf"><option value="">Sélectionner</option>${fList}<option value="__new__">+ Nouveau</option></select><input id="m-pfn" placeholder="Nom si nouveau" style="margin-top:4px;display:none"></div><div class="fgrp"><label>Montant</label><input id="m-pm" type="number"></div></div><div class="frow"><div class="fgrp"><label>Moyen</label><select id="m-py"><option>Chèque</option><option>Virement</option><option>Espèces</option><option>Effet</option></select></div><div class="fgrp"><label>Date</label><input id="m-pd" type="date" value="${new Date().toISOString().slice(0,10)}"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="window.savePEC()">Enregistrer</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);
+// -- PEC (with Motif field) --
+window.addPEC=()=>{const fList=D.dettes.map(d=>`<option value="${d.nom}">${d.nom}</option>`).join('');showModal(`<h3>Paiement en cours</h3><div class="frow"><div class="fgrp"><label>Fournisseur</label><select id="m-pf"><option value="">Sélectionner</option>${fList}<option value="__new__">+ Nouveau</option></select><input id="m-pfn" placeholder="Nom si nouveau" style="margin-top:4px;display:none"></div><div class="fgrp"><label>Montant</label><input id="m-pm" type="number"></div></div><div class="frow"><div class="fgrp"><label>Moyen</label><select id="m-py"><option>Chèque</option><option>Virement</option><option>Espèces</option><option>Effet</option></select></div><div class="fgrp"><label>Date</label><input id="m-pd" type="date" value="${new Date().toISOString().slice(0,10)}"></div></div><div class="frow"><div class="fgrp"><label>Motif</label><input id="m-pmotif" placeholder="Ex: Facture #123"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="window.savePEC()">Enregistrer</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);
 document.getElementById('m-pf').onchange=function(){document.getElementById('m-pfn').style.display=this.value==='__new__'?'block':'none';};};
 window.savePEC=()=>{
 let fournisseur=document.getElementById('m-pf').value;
@@ -686,17 +915,18 @@ if(fournisseur==='__new__')fournisseur=document.getElementById('m-pfn').value;
 const montant=+document.getElementById('m-pm').value;
 const moyen=document.getElementById('m-py').value;
 const date=document.getElementById('m-pd').value;
+const motif=document.getElementById('m-pmotif').value;
 if(!fournisseur||!montant)return;
-D.paiementsEnCours.push({id:uid(),fournisseur,montant,moyen,date});
-// Impact auto sur dettes
+D.paiementsEnCours.push({id:uid(),fournisseur,montant,moyen,date,motif});
 const dette=D.dettes.find(d=>d.nom===fournisseur);
 if(dette){if(!dette.paiements)dette.paiements=[];dette.paiements.push({date,montant,moyen});}
 save();window.closeModal();};
 window.delPEC=(id)=>{D.paiementsEnCours=D.paiementsEnCours.filter(x=>x.id!==id);save();};
 // -- Dettes --
 window.addDette=()=>{showModal(`<h3>Nouveau fournisseur</h3><div class="frow"><div class="fgrp"><label>Nom</label><input id="m-dn"></div><div class="fgrp"><label>Montant</label><input id="m-dm" type="number"></div></div><div class="frow"><div class="fgrp"><label>Statut</label><select id="m-ds"><option>Actif</option><option>Inactif</option></select></div><div class="fgrp"><label>Convention</label><input id="m-dc" value="Pas de conv."></div></div><div class="frow"><div class="fgrp"><label>Priorité</label><select id="m-dp"><option>URGENT</option><option>Actif</option><option>Historique</option><option>En négociation</option><option>Interne</option></select></div><div class="fgrp"><label>Plan</label><input id="m-dpl"></div></div><div class="frow"><div class="fgrp"><label>Date début</label><input id="m-dd" type="date"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="D.dettes.push({id:uid(),nom:document.getElementById('m-dn').value,montant:+document.getElementById('m-dm').value,statut:document.getElementById('m-ds').value,convention:document.getElementById('m-dc').value,priorite:document.getElementById('m-dp').value,plan:document.getElementById('m-dpl').value,debut:document.getElementById('m-dd').value,paiements:[]});save();window.closeModal()">Ajouter</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
-window.editDette=(id)=>{const x=D.dettes.find(d=>d.id===id);if(!x)return;showModal(`<h3>Modifier fournisseur</h3><div class="frow"><div class="fgrp"><label>Nom</label><input id="m-dn" value="${x.nom}"></div><div class="fgrp"><label>Montant</label><input id="m-dm" type="number" value="${x.montant}"></div></div><div class="frow"><div class="fgrp"><label>Statut</label><select id="m-ds"><option ${x.statut==='Actif'?'selected':''}>Actif</option><option ${x.statut==='Inactif'?'selected':''}>Inactif</option></select></div><div class="fgrp"><label>Convention</label><input id="m-dc" value="${x.convention}"></div></div><div class="frow"><div class="fgrp"><label>Priorité</label><select id="m-dp"><option ${x.priorite==='URGENT'?'selected':''}>URGENT</option><option ${x.priorite==='Actif'?'selected':''}>Actif</option><option ${x.priorite==='Historique'?'selected':''}>Historique</option><option ${x.priorite==='En négociation'?'selected':''}>En négociation</option><option ${x.priorite==='Interne'?'selected':''}>Interne</option></select></div><div class="fgrp"><label>Plan</label><input id="m-dpl" value="${x.plan}"></div></div><div class="frow"><div class="fgrp"><label>Date début</label><input id="m-dd" type="date" value="${x.debut}"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="const d=D.dettes.find(d=>d.id==='${id}');d.nom=document.getElementById('m-dn').value;d.montant=+document.getElementById('m-dm').value;d.statut=document.getElementById('m-ds').value;d.convention=document.getElementById('m-dc').value;d.priorite=document.getElementById('m-dp').value;d.plan=document.getElementById('m-dpl').value;d.debut=document.getElementById('m-dd').value;save();window.closeModal()">Enregistrer</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
+window.editDette=(id)=>{const x=D.dettes.find(d=>d.id===id);if(!x)return;const safeDate=(x.debut&&/^\d{4}-\d{2}-\d{2}$/.test(x.debut))?x.debut:'';showModal(`<h3>Modifier fournisseur</h3><div class="frow"><div class="fgrp"><label>Nom</label><input id="m-dn" value="${x.nom}"></div><div class="fgrp"><label>Montant</label><input id="m-dm" type="number" value="${x.montant}"></div></div><div class="frow"><div class="fgrp"><label>Statut</label><select id="m-ds"><option ${x.statut==='Actif'?'selected':''}>Actif</option><option ${x.statut==='Inactif'?'selected':''}>Inactif</option></select></div><div class="fgrp"><label>Convention</label><input id="m-dc" value="${x.convention}"></div></div><div class="frow"><div class="fgrp"><label>Priorité</label><select id="m-dp"><option ${x.priorite==='URGENT'?'selected':''}>URGENT</option><option ${x.priorite==='Actif'?'selected':''}>Actif</option><option ${x.priorite==='Historique'?'selected':''}>Historique</option><option ${x.priorite==='En négociation'?'selected':''}>En négociation</option><option ${x.priorite==='Interne'?'selected':''}>Interne</option></select></div><div class="fgrp"><label>Plan</label><input id="m-dpl" value="${x.plan||''}"></div></div><div class="frow"><div class="fgrp"><label>Date début</label><input id="m-dd" type="date" value="${safeDate}"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="window.saveDetteEdit('${id}')">Enregistrer</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
 window.delDette=(id)=>{if(confirm('Supprimer ce fournisseur ?')){D.dettes=D.dettes.filter(x=>x.id!==id);save();}};
+window.saveDetteEdit=(id)=>{const d=D.dettes.find(x=>x.id===id);if(!d)return;d.nom=document.getElementById('m-dn').value;d.montant=+document.getElementById('m-dm').value;d.statut=document.getElementById('m-ds').value;d.convention=document.getElementById('m-dc').value;d.priorite=document.getElementById('m-dp').value;d.plan=document.getElementById('m-dpl').value;d.debut=document.getElementById('m-dd').value;save();window.closeModal();};
 // -- Créances --
 window.addCreanceClient=()=>{showModal(`<h3>Nouveau client</h3><div class="frow"><div class="fgrp"><label>Nom complet</label><input id="m-ccn"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="D.creances.push({id:uid(),client:document.getElementById('m-ccn').value,total:0,classeeSansSuite:false,factures:[]});save();window.closeModal()">Ajouter</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
 window.editCreanceClient=(id)=>{const c=D.creances.find(x=>x.id===id);if(!c)return;showModal(`<h3>Modifier client</h3><div class="frow"><div class="fgrp"><label>Nom complet</label><input id="m-ccn" value="${c.client}"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="D.creances.find(x=>x.id==='${id}').client=document.getElementById('m-ccn').value;save();window.closeModal()">Enregistrer</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
@@ -716,6 +946,40 @@ window.delCal=(id)=>{D.calendrier=D.calendrier.filter(x=>x.id!==id);save();};
 window.toggleTodo=(id)=>{const t=D.todoAlerts.find(x=>x.id===id);if(t)t.done=!t.done;save();};
 window.delTodo=(id)=>{D.todoAlerts=D.todoAlerts.filter(x=>x.id!==id);save();};
 window.addTodoPrompt=()=>{showModal(`<h3>Nouvelle action</h3><div class="frow"><div class="fgrp"><label>Description</label><input id="m-td"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="D.todoAlerts.push({id:uid(),desc:document.getElementById('m-td').value,done:false});save();window.closeModal()">Ajouter</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
+// -- Caisse CRUD --
+window.addCaisseOp=()=>{
+const mc=D.caisse.moisCourant;
+showModal(`<h3>Nouvelle opération caisse</h3>
+<div class="frow"><div class="fgrp"><label>Date</label><input id="m-cod" type="date" value="${mc}-01"></div><div class="fgrp"><label>Type</label><select id="m-cot"><option>Alimentation</option><option>Dépense</option></select></div></div>
+<div class="frow"><div class="fgrp"><label>Description</label><input id="m-codc"></div><div class="fgrp"><label>Commentaire</label><input id="m-cocm"></div></div>
+<div class="frow"><div class="fgrp"><label>Entrée (MAD)</label><input id="m-coe" type="number" value="0"></div><div class="fgrp"><label>Sortie (MAD)</label><input id="m-cos" type="number" value="0"></div></div>
+<div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="window.saveCaisseOp()">Ajouter</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);
+};
+window.saveCaisseOp=()=>{
+const date=document.getElementById('m-cod').value;
+const type=document.getElementById('m-cot').value;
+const desc=document.getElementById('m-codc').value;
+const commentaire=document.getElementById('m-cocm').value;
+const entree=+document.getElementById('m-coe').value;
+const sortie=+document.getElementById('m-cos').value;
+if(!date)return;
+D.caisse.operations.push({id:uid(),date,type,desc,entree,sortie,commentaire});
+save();window.closeModal();
+};
+window.delCaisseOp=(id)=>{if(confirm('Supprimer cette opération ?')){D.caisse.operations=D.caisse.operations.filter(x=>x.id!==id);save();}};
+window.caissePrevMois=()=>{
+let[y,m]=D.caisse.moisCourant.split('-').map(Number);
+m--;if(m<1){m=12;y--;}
+D.caisse.moisCourant=y+'-'+String(m).padStart(2,'0');
+renderCaisse();
+};
+window.caisseNextMois=()=>{
+let[y,m]=D.caisse.moisCourant.split('-').map(Number);
+m++;if(m>12){m=1;y++;}
+D.caisse.moisCourant=y+'-'+String(m).padStart(2,'0');
+renderCaisse();
+};
+window.updateCaisseSoldeInit=(v)=>{D.caisse.soldeInitial=+v;save();};
 // -- Notifications --
 window.reqNotif=()=>{if('Notification'in window)Notification.requestPermission().then(p=>{if(p==='granted')alert('Notifications activées !');});};
 
@@ -736,41 +1000,30 @@ const page=await pdf.getPage(i);
 const tc=await page.getTextContent();
 fullText+=tc.items.map(x=>x.str).join(' ')+'\n';
 }
-// Extract période
 const perMatch=fullText.match(/Relevé du (\d{2}\/\d{2}\/\d{2}) au (\d{2}\/\d{2}\/\d{2})/);
 if(perMatch)periode=perMatch[0];
-// Extract solde précédent
 const spMatch=fullText.match(/Solde précédent[^:]*:\s*([\d\s.,]+)\s*CR/);
 if(spMatch&&!soldePrecedent)soldePrecedent=parseMontant(spMatch[1]);
-// Extract solde final
 const sfMatch=fullText.match(/Solde au \d{2}\/\d{2}\/\d{2}[^C]*?([\d\s.,]+)\s*CR/);
 if(sfMatch)soldeFinal=parseMontant(sfMatch[1]);
-// Extract operations - pattern: DD/MM DD/MM LIBELLE MONTANT
 const lines=fullText.split('\n');
-const opRegex=/(\d{2}\/\d{2})\s+(\d{2}\/\d{2})\s+(.+?)\s+([\d\s.]+,\d{2})\s*$/;
 for(const line of lines){
-// Try to match debit or credit lines
 const parts=line.trim();
 if(!parts)continue;
-// Match date patterns at start
 const dateMatch=parts.match(/^(\d{2}\/\d{2})\s+(\d{2}\/\d{2})\s+(.+)/);
 if(!dateMatch)continue;
 const dateOp=dateMatch[1];
-const dateVal=dateMatch[2];
 let rest=dateMatch[3];
-// Find amounts at end - could be in debit or credit column
 const amtMatches=[...rest.matchAll(/([\d.]+,\d{2})/g)];
 if(!amtMatches.length)continue;
 const lastAmt=amtMatches[amtMatches.length-1];
 const montant=parseMontant(lastAmt[0]);
 const libelle=rest.slice(0,lastAmt.index).trim();
-// Determine if debit or credit based on keywords
 const isCredit=libelle.match(/RECEPTION|ENCAISSEMENT|REMISE/i);
 allOps.push({date:dateOp,libelle:libelle.slice(0,80),montant,type:isCredit?'credit':'debit'});
 }
 }catch(e){console.error('PDF parse error:',e);}
 }
-// Display results
 if(allOps.length){
 const totalDebit=allOps.filter(x=>x.type==='debit').reduce((s,x)=>s+x.montant,0);
 const totalCredit=allOps.filter(x=>x.type==='credit').reduce((s,x)=>s+x.montant,0);
@@ -779,7 +1032,6 @@ if(soldeFinal){html+=`<div class="alrt alrt-w">Solde final relevé: <b>${fmtK(so
 html+=`<div class="tw" style="max-height:300px;overflow-y:auto"><table><thead><tr><th>Date</th><th>Libellé</th><th style="text-align:right">Débit</th><th style="text-align:right">Crédit</th></tr></thead><tbody>`;
 allOps.forEach(o=>{html+=`<tr><td>${o.date}</td><td style="font-size:11px">${o.libelle}</td><td style="text-align:right;color:var(--dgr)">${o.type==='debit'?fmtK(o.montant):''}</td><td style="text-align:right;color:var(--grn)">${o.type==='credit'?fmtK(o.montant):''}</td></tr>`;});
 html+=`</tbody></table></div>`;
-// Store in data
 if(!D.releves)D.releves=[];
 D.releves.push({date:new Date().toISOString(),periode,operations:allOps,soldeF:soldeFinal});
 save();
@@ -793,6 +1045,7 @@ async function save(){
 try{const ref=doc(db,'dashboard','main');await setDoc(ref,JSON.parse(JSON.stringify(D)));setSyncStatus(true);}
 catch(e){console.error('Save:',e);setSyncStatus(false);}
 }
+window.save=save;
 function setSyncStatus(ok){document.getElementById('sdot').className='sync-d'+(ok?'':' off');document.getElementById('slab').textContent=ok?'Connecté':'Hors ligne';}
 async function initApp(){
 const ref=doc(db,'dashboard','main');
