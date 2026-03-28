@@ -294,28 +294,67 @@ function ensureData(){
 const s=seed();
 if(!D.charges)D.charges={};
 if(!D.charges.salaires)D.charges.salaires=s.charges.salaires;
+if(!Array.isArray(D.charges.salaires)){const old=D.charges.salaires;D.charges.salaires=Object.values(old);}
 if(!D.charges.admin)D.charges.admin=s.charges.admin;
+if(!Array.isArray(D.charges.admin))D.charges.admin=Object.values(D.charges.admin);
 if(!D.charges.credits)D.charges.credits=s.charges.credits;
+if(!Array.isArray(D.charges.credits))D.charges.credits=Object.values(D.charges.credits);
 if(!D.charges.logistique)D.charges.logistique=s.charges.logistique;
-if(!D.soldeManuel)D.soldeManuel=s.soldeManuel;
-if(!D.paiementsEnCours)D.paiementsEnCours=[];
-if(!D.todoAlerts)D.todoAlerts=s.todoAlerts;
-if(!D.releves)D.releves=[];
+if(!Array.isArray(D.charges.logistique))D.charges.logistique=Object.values(D.charges.logistique);
+// V1 had charges.fixes as object — migrate
+if(D.charges.fixes&&!D.charges.admin.length){
+const f=D.charges.fixes;
+D.charges.admin=[{id:'a1',nom:'CNSS',montant:f.cnss||43000},{id:'a2',nom:'IR',montant:f.ir||24000}];
+D.charges.credits=[{id:'c1',nom:'Eqdom (fin 2027)',montant:f.eqdom||4013},{id:'c2',nom:'Sofac (fin 2027)',montant:f.sofac||8129},{id:'c3',nom:'RCI (fin 2030)',montant:f.rci||3700},{id:'c4',nom:'Saham (fin 2028)',montant:f.saham||12700}];
+D.charges.logistique=[{id:'l1',nom:'Loyer',montant:16000},{id:'l2',nom:'Maroc Telecom',montant:4000},{id:'l3',nom:'Eau & Électricité',montant:1500}];
+}
+if(!D.soldeManuel){
+// V1 had tresorerie object
+if(D.tresorerie){D.soldeManuel={comptePrincipal:D.tresorerie.comptePrincipal||0,compteBis:D.tresorerie.compteBis||0,caisse:D.tresorerie.caisse||0,date:'2026-03-28'};}
+else{D.soldeManuel=s.soldeManuel;}
+}
+if(!D.historiqueSoldes){
+if(D.tresorerie&&D.tresorerie.historique)D.historiqueSoldes=D.tresorerie.historique;
+else D.historiqueSoldes=s.historiqueSoldes;
+}
+if(!D.paiementsEnCours||!Array.isArray(D.paiementsEnCours))D.paiementsEnCours=[];
+if(!D.todoAlerts||!Array.isArray(D.todoAlerts))D.todoAlerts=s.todoAlerts;
+if(!D.releves||!Array.isArray(D.releves))D.releves=[];
 if(!D.seuilAlerte)D.seuilAlerte=100000;
-if(!D.historiqueSoldes)D.historiqueSoldes=s.historiqueSoldes;
 if(!D.dettesFiscales)D.dettesFiscales=s.dettesFiscales;
-if(!D.caClient2025)D.caClient2025=s.caClient2025;
+if(!D.caClient2025||!Array.isArray(D.caClient2025))D.caClient2025=s.caClient2025;
 if(!D.resultats)D.resultats=s.resultats;
-if(!D.pipeline)D.pipeline=s.pipeline;
-if(!D.calendrier)D.calendrier=s.calendrier;
+if(!D.pipeline||!Array.isArray(D.pipeline))D.pipeline=s.pipeline;
+if(!D.calendrier||!Array.isArray(D.calendrier))D.calendrier=s.calendrier;
+// Dettes: handle V1 array or Firestore object conversion
 if(!D.dettes)D.dettes=s.dettes;
+if(!Array.isArray(D.dettes))D.dettes=Object.values(D.dettes);
+// Creances: V1 was object with keys (smt, cac...), V2 is array
 if(!D.creances)D.creances=s.creances;
+if(!Array.isArray(D.creances)){
+// Convert V1 object format to V2 array
+const old=D.creances;
+const arr=[];
+Object.keys(old).forEach((k,i)=>{
+const v=old[k];
+if(v&&v.client){
+if(!v.id)v.id='cr'+i;
+if(v.classeeSansSuite===undefined)v.classeeSansSuite=false;
+if(!Array.isArray(v.factures))v.factures=v.factures?Object.values(v.factures):[];
+arr.push(v);
+}
+});
+D.creances=arr.length?arr:s.creances;
+}
+// Ensure IDs on all arrays
 D.charges.salaires.forEach((x,i)=>{if(!x.id)x.id='s'+i;});
 D.charges.admin.forEach((x,i)=>{if(!x.id)x.id='a'+i;});
 D.charges.credits.forEach((x,i)=>{if(!x.id)x.id='c'+i;});
 D.charges.logistique.forEach((x,i)=>{if(!x.id)x.id='l'+i;});
-D.dettes.forEach((x,i)=>{if(!x.id)x.id='d'+i;if(!x.paiements)x.paiements=[];});
-D.creances.forEach((x,i)=>{if(!x.id)x.id='cr'+i;if(x.classeeSansSuite===undefined)x.classeeSansSuite=false;x.factures.forEach((f,j)=>{if(!f.id)f.id='f'+i+'_'+j;});});
+D.dettes.forEach((x,i)=>{if(!x.id)x.id='d'+i;if(!x.paiements)x.paiements=[];if(!Array.isArray(x.paiements))x.paiements=Object.values(x.paiements);});
+D.creances.forEach((x,i)=>{if(!x.id)x.id='cr'+i;if(x.classeeSansSuite===undefined)x.classeeSansSuite=false;if(!Array.isArray(x.factures))x.factures=x.factures?Object.values(x.factures):[];x.factures.forEach((f,j)=>{if(!f.id)f.id='f'+i+'_'+j;});});
+D.pipeline.forEach((x,i)=>{if(!x.id)x.id='p'+i;});
+D.calendrier.forEach((x,i)=>{if(!x.id)x.id='cl'+i;});
 }
 function getComputedData(){
 ensureData();
