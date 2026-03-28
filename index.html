@@ -5,1015 +5,721 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Déclic — Dashboard Financier</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
-:root {
-  --red: #E30613;
-  --red-dark: #B80510;
-  --gray: #4A4A4A;
-  --bg: #ffffff;
-  --bg2: #f5f5f5;
-  --bg3: #eaeaea;
-  --text: #1a1a1a;
-  --text2: #555;
-  --card: #ffffff;
-  --card-border: #e0e0e0;
-  --shadow: rgba(0,0,0,0.06);
-  --green: #27ae60;
-  --orange: #f39c12;
-  --blue: #2980b9;
-  --danger: #e74c3c;
-}
-.dark {
-  --bg: #121212;
-  --bg2: #1e1e1e;
-  --bg3: #2a2a2a;
-  --text: #e0e0e0;
-  --text2: #aaa;
-  --card: #1e1e1e;
-  --card-border: #333;
-  --shadow: rgba(0,0,0,0.3);
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); transition: background .3s, color .3s; }
+:root{--red:#E30613;--red-d:#B80510;--gray:#4A4A4A;--bg:#fff;--bg2:#f5f5f5;--bg3:#eaeaea;--text:#1a1a1a;--text2:#666;--card:#fff;--brd:#e0e0e0;--shd:rgba(0,0,0,.06);--grn:#27ae60;--org:#f39c12;--blu:#2980b9;--dgr:#e74c3c;--prp:#8e44ad}
+.dark{--bg:#121212;--bg2:#1e1e1e;--bg3:#2a2a2a;--text:#e0e0e0;--text2:#999;--card:#1e1e1e;--brd:#333;--shd:rgba(0,0,0,.3)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);transition:background .3s,color .3s;font-size:13px}
 /* LOGIN */
-#login-screen { display: flex; align-items: center; justify-content: center; height: 100vh; background: var(--bg); }
-.login-box { background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; padding: 40px; text-align: center; width: 360px; box-shadow: 0 8px 32px var(--shadow); }
-.login-box img { width: 140px; margin-bottom: 24px; }
-.login-box input { width: 100%; padding: 12px 16px; border: 1px solid var(--card-border); border-radius: 8px; font-size: 15px; background: var(--bg2); color: var(--text); margin-bottom: 16px; outline: none; }
-.login-box input:focus { border-color: var(--red); }
-.login-box button { width: 100%; padding: 12px; background: var(--red); color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background .2s; }
-.login-box button:hover { background: var(--red-dark); }
-.login-error { color: var(--danger); font-size: 13px; margin-top: 8px; display: none; }
+#login-screen{display:flex;align-items:center;justify-content:center;height:100vh;background:var(--bg)}
+.login-box{background:var(--card);border:1px solid var(--brd);border-radius:12px;padding:40px;text-align:center;width:340px;box-shadow:0 8px 32px var(--shd)}
+.login-box img{width:140px;margin-bottom:24px}
+.login-box input{width:100%;padding:12px;border:1px solid var(--brd);border-radius:8px;font-size:14px;background:var(--bg2);color:var(--text);margin-bottom:12px;outline:none}
+.login-box input:focus{border-color:var(--red)}
+.login-box button{width:100%;padding:12px;background:var(--red);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
+.login-box button:hover{background:var(--red-d)}
+.login-err{color:var(--dgr);font-size:12px;margin-top:6px;display:none}
 /* LAYOUT */
-#app { display: none; }
-.topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; background: var(--card); border-bottom: 1px solid var(--card-border); position: sticky; top: 0; z-index: 100; }
-.topbar-left { display: flex; align-items: center; gap: 12px; }
-.topbar-left img { height: 32px; }
-.topbar-title { font-size: 16px; font-weight: 700; color: var(--red); }
-.topbar-right { display: flex; align-items: center; gap: 16px; }
-.sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); display: inline-block; }
-.sync-dot.off { background: var(--danger); }
-.sync-label { font-size: 12px; color: var(--text2); }
-.theme-toggle { background: none; border: 1px solid var(--card-border); border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 14px; color: var(--text); }
+#app{display:none}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:var(--card);border-bottom:1px solid var(--brd);position:sticky;top:0;z-index:100}
+.topbar-l{display:flex;align-items:center;gap:10px}
+.topbar-l img{height:28px}
+.topbar-t{font-size:15px;font-weight:700;color:var(--red)}
+.topbar-r{display:flex;align-items:center;gap:12px}
+.sync-d{width:7px;height:7px;border-radius:50%;background:var(--grn);display:inline-block}
+.sync-d.off{background:var(--dgr)}
+.sync-l{font-size:11px;color:var(--text2)}
+.tbtn{background:none;border:1px solid var(--brd);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:13px;color:var(--text)}
+/* HEALTH SCORE */
+.health-bar{display:flex;align-items:center;gap:12px;padding:12px 20px;background:var(--bg2);border-bottom:1px solid var(--brd)}
+.health-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+.health-dot.green{background:var(--grn)}.health-dot.orange{background:var(--org)}.health-dot.red{background:var(--dgr)}
+.health-txt{font-size:12px;font-weight:600}
 /* NAV */
-.nav { display: flex; gap: 4px; padding: 8px 24px; background: var(--bg2); overflow-x: auto; border-bottom: 1px solid var(--card-border); }
-.nav button { padding: 8px 16px; border: none; background: transparent; color: var(--text2); font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 6px; white-space: nowrap; transition: all .2s; }
-.nav button.active { background: var(--red); color: #fff; }
-.nav button:hover:not(.active) { background: var(--bg3); }
+.nav{display:flex;gap:3px;padding:6px 20px;background:var(--bg2);overflow-x:auto;border-bottom:1px solid var(--brd)}
+.nav button{padding:7px 14px;border:none;background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;border-radius:5px;white-space:nowrap;transition:all .2s}
+.nav button.active{background:var(--red);color:#fff}
+.nav button:hover:not(.active){background:var(--bg3)}
 /* CONTENT */
-.content { padding: 24px; max-width: 1400px; margin: 0 auto; }
-.module { display: none; }
-.module.active { display: block; }
+.content{padding:20px;max-width:1400px;margin:0 auto}
+.module{display:none}.module.active{display:block}
 /* CARDS */
-.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px; }
-.card { background: var(--card); border: 1px solid var(--card-border); border-radius: 10px; padding: 20px; box-shadow: 0 2px 8px var(--shadow); }
-.card-label { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
-.card-value { font-size: 28px; font-weight: 700; }
-.card-sub { font-size: 13px; color: var(--text2); margin-top: 4px; }
-.card-value.red { color: var(--danger); }
-.card-value.green { color: var(--green); }
-.card-value.orange { color: var(--orange); }
-.card-value.blue { color: var(--blue); }
-/* ALERTS */
-.alert-box { background: #fef3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; color: #856404; font-size: 13px; }
-.dark .alert-box { background: #3d3200; border-color: #665200; color: #ffc107; }
-.alert-danger { background: #f8d7da; border-color: #f5c6cb; color: #721c24; }
-.dark .alert-danger { background: #3d0a0a; border-color: #5c1010; color: #f5c6cb; }
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--brd);border-radius:8px;padding:14px;box-shadow:0 1px 4px var(--shd)}
+.card-l{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.card-v{font-size:22px;font-weight:700}
+.card-s{font-size:11px;color:var(--text2);margin-top:2px}
+.red{color:var(--dgr)}.green{color:var(--grn)}.orange{color:var(--org)}.blue{color:var(--blu)}
+/* ALERT */
+.alrt{border-radius:6px;padding:10px 14px;margin-bottom:10px;font-size:12px}
+.alrt-w{background:#fef3cd;border:1px solid #ffc107;color:#856404}
+.alrt-d{background:#f8d7da;border:1px solid #f5c6cb;color:#721c24}
+.alrt-i{background:#d1ecf1;border:1px solid #bee5eb;color:#0c5460}
+.dark .alrt-w{background:#3d3200;border-color:#665200;color:#ffc107}
+.dark .alrt-d{background:#3d0a0a;border-color:#5c1010;color:#f5c6cb}
+.dark .alrt-i{background:#0a2d33;border-color:#0c5460;color:#bee5eb}
 /* TABLE */
-.table-wrap { overflow-x: auto; margin-bottom: 24px; }
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th { background: var(--bg2); color: var(--text2); font-weight: 600; text-align: left; padding: 10px 12px; border-bottom: 2px solid var(--card-border); position: sticky; top: 0; }
-td { padding: 10px 12px; border-bottom: 1px solid var(--card-border); }
-tr:hover td { background: var(--bg2); }
-/* PROGRESS */
-.progress-bar { height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
-.progress-fill { height: 100%; border-radius: 3px; transition: width .3s; }
+.tw{overflow-x:auto;margin-bottom:16px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--bg2);color:var(--text2);font-weight:600;text-align:left;padding:8px 10px;border-bottom:2px solid var(--brd);cursor:pointer;user-select:none;white-space:nowrap}
+th:hover{background:var(--bg3)}
+td{padding:8px 10px;border-bottom:1px solid var(--brd)}
+tr:hover td{background:var(--bg2)}
 /* TAGS */
-.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
-.tag-urgent { background: #f8d7da; color: #721c24; }
-.tag-actif { background: #d4edda; color: #155724; }
-.tag-inactif { background: #e2e3e5; color: #383d41; }
-.tag-retard { background: #f5c6cb; color: #721c24; }
-.tag-attente { background: #fff3cd; color: #856404; }
-.dark .tag-urgent { background: #5c1010; color: #f5c6cb; }
-.dark .tag-actif { background: #0d3d1a; color: #a3d9b1; }
-.dark .tag-inactif { background: #333; color: #999; }
-.dark .tag-retard { background: #5c1010; color: #f5c6cb; }
-.dark .tag-attente { background: #3d3200; color: #ffc107; }
+.tag{display:inline-block;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600}
+.tag-u{background:#f8d7da;color:#721c24}.tag-a{background:#d4edda;color:#155724}.tag-i{background:#e2e3e5;color:#383d41}
+.tag-r{background:#f5c6cb;color:#721c24}.tag-w{background:#fff3cd;color:#856404}.tag-b{background:#cce5ff;color:#004085}
+.dark .tag-u{background:#5c1010;color:#f5c6cb}.dark .tag-a{background:#0d3d1a;color:#a3d9b1}.dark .tag-i{background:#333;color:#999}
+.dark .tag-r{background:#5c1010;color:#f5c6cb}.dark .tag-w{background:#3d3200;color:#ffc107}.dark .tag-b{background:#003366;color:#cce5ff}
 /* SECTION */
-.section-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--red); display: flex; align-items: center; gap: 8px; }
-.section-title span { font-size: 20px; }
+.stitle{font-size:16px;font-weight:700;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--red);display:flex;align-items:center;gap:6px}
+/* ACCORDION */
+.acc{border:1px solid var(--brd);border-radius:8px;margin-bottom:10px;overflow:hidden}
+.acc-h{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg2);cursor:pointer;font-weight:600;font-size:13px;user-select:none}
+.acc-h:hover{background:var(--bg3)}
+.acc-h .arr{transition:transform .2s;font-size:10px}
+.acc-h.open .arr{transform:rotate(90deg)}
+.acc-b{display:none;padding:10px 14px}
+.acc-h.open+.acc-b{display:block}
 /* CHART */
-.chart-container { background: var(--card); border: 1px solid var(--card-border); border-radius: 10px; padding: 20px; margin-bottom: 24px; }
+.cht{background:var(--card);border:1px solid var(--brd);border-radius:8px;padding:14px;margin-bottom:16px}
+.cht h4{font-size:13px;margin-bottom:8px}
 /* FORMS */
-.form-row { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
-.form-group { flex: 1; min-width: 180px; }
-.form-group label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 4px; font-weight: 600; }
-.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 13px; background: var(--bg); color: var(--text); }
-.btn { padding: 8px 16px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s; }
-.btn-primary { background: var(--red); color: #fff; }
-.btn-primary:hover { background: var(--red-dark); }
-.btn-secondary { background: var(--bg3); color: var(--text); }
-.btn-sm { padding: 4px 10px; font-size: 12px; }
-.btn-danger { background: var(--danger); color: #fff; }
+.frow{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.fgrp{flex:1;min-width:140px}
+.fgrp label{display:block;font-size:11px;color:var(--text2);margin-bottom:3px;font-weight:600}
+.fgrp input,.fgrp select,.fgrp textarea{width:100%;padding:6px 10px;border:1px solid var(--brd);border-radius:5px;font-size:12px;background:var(--bg);color:var(--text)}
+.btn{padding:6px 12px;border:none;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-p{background:var(--red);color:#fff}.btn-p:hover{background:var(--red-d)}
+.btn-s{background:var(--bg3);color:var(--text)}.btn-d{background:var(--dgr);color:#fff}
+.btn-g{background:var(--grn);color:#fff}
+.btn-sm{padding:3px 8px;font-size:11px}
 /* MODAL */
-.modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.5); z-index: 200; align-items: center; justify-content: center; }
-.modal-overlay.show { display: flex; }
-.modal { background: var(--card); border-radius: 12px; padding: 24px; width: 90%; max-width: 560px; max-height: 80vh; overflow-y: auto; }
-.modal h3 { font-size: 16px; margin-bottom: 16px; }
+.mo{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center}
+.mo.show{display:flex}
+.mo-c{background:var(--card);border-radius:10px;padding:20px;width:90%;max-width:520px;max-height:80vh;overflow-y:auto}
+.mo-c h3{font-size:15px;margin-bottom:12px}
+/* TOOLBAR */
+.tbar{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+/* UPLOAD */
+.upload-zone{border:2px dashed var(--brd);border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:12px}
+.upload-zone:hover{border-color:var(--red)}
+.upload-zone.dragover{border-color:var(--red);background:rgba(227,6,19,.05)}
 /* RESPONSIVE */
-@media (max-width: 768px) {
-  .cards { grid-template-columns: 1fr 1fr; }
-  .content { padding: 16px; }
-  .topbar { padding: 10px 16px; }
-  .nav { padding: 6px 16px; }
-  .card-value { font-size: 22px; }
-}
-@media (max-width: 480px) {
-  .cards { grid-template-columns: 1fr; }
-  .form-row { flex-direction: column; }
-}
-/* EXPORT/IMPORT */
-.toolbar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-/* CALENDAR */
-.cal-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-bottom: 1px solid var(--card-border); }
-.cal-date { min-width: 80px; font-weight: 700; font-size: 13px; color: var(--red); }
-.cal-desc { font-size: 13px; flex: 1; }
-.cal-tag { font-size: 11px; }
+@media(max-width:768px){.cards{grid-template-columns:1fr 1fr}.content{padding:12px}.card-v{font-size:18px}}
+@media(max-width:480px){.cards{grid-template-columns:1fr}.frow{flex-direction:column}}
+/* EDIT INLINE */
+.editable{cursor:pointer;border-bottom:1px dashed var(--brd)}
+.editable:hover{border-color:var(--red)}
+.edit-input{border:1px solid var(--red);border-radius:4px;padding:3px 6px;font-size:12px;background:var(--bg);color:var(--text);width:100%}
 /* PIPELINE */
-.pipeline-card { background: var(--card); border: 1px solid var(--card-border); border-radius: 8px; padding: 16px; margin-bottom: 12px; }
-.pipeline-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.pipeline-client { font-weight: 700; font-size: 14px; }
-.pipeline-amount { font-weight: 700; color: var(--green); }
+.pip-c{background:var(--card);border:1px solid var(--brd);border-radius:6px;padding:12px;margin-bottom:8px}
+/* CAL */
+.cal-i{display:flex;align-items:flex-start;gap:10px;padding:10px;border-bottom:1px solid var(--brd)}
+.cal-d{min-width:75px;font-weight:700;font-size:12px;color:var(--red)}
 </style>
 </head>
 <body>
-
 <!-- LOGIN -->
 <div id="login-screen">
-  <div class="login-box">
-    <img src="data:image/jpeg;base64,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" alt="Déclic">
-    <input type="password" id="pwd-input" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')doLogin()">
-    <button onclick="doLogin()">Accéder</button>
-    <div class="login-error" id="login-error">Mot de passe incorrect</div>
-  </div>
+<div class="login-box">
+<img src="data:image/jpeg;base64,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" alt="Déclic">
+<input type="password" id="pwd" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')window.doLogin()">
+<button onclick="window.doLogin()">Accéder</button>
+<div class="login-err" id="lerr">Mot de passe incorrect</div>
 </div>
-
+</div>
 <!-- APP -->
 <div id="app">
-  <div class="topbar">
-    <div class="topbar-left">
-      <img src="data:image/jpeg;base64,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" alt="Déclic">
-      <div class="topbar-title">Dashboard Financier</div>
-    </div>
-    <div class="topbar-right">
-      <span class="sync-dot" id="sync-dot"></span>
-      <span class="sync-label" id="sync-label">Connecté</span>
-      <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
-      <button class="btn btn-sm btn-secondary" onclick="doLogout()">Déconnexion</button>
-    </div>
-  </div>
-
-  <div class="nav" id="nav">
-    <button class="active" onclick="showModule('overview',this)">🏠 Vue d'ensemble</button>
-    <button onclick="showModule('tresorerie',this)">💰 Trésorerie</button>
-    <button onclick="showModule('dettes',this)">📋 Dettes fournisseurs</button>
-    <button onclick="showModule('creances',this)">📊 Créances clients</button>
-    <button onclick="showModule('pipeline',this)">🎯 Pipeline</button>
-    <button onclick="showModule('calendrier',this)">📅 Calendrier</button>
-  </div>
-
-  <div class="content">
-    <!-- TOOLBAR GLOBAL -->
-    <div class="toolbar">
-      <button class="btn btn-sm btn-secondary" onclick="exportData()">📥 Export JSON</button>
-      <button class="btn btn-sm btn-secondary" onclick="document.getElementById('import-file').click()">📤 Import JSON</button>
-      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
-    </div>
-
-    <!-- MODULE 1: VUE D'ENSEMBLE -->
-    <div class="module active" id="mod-overview">
-      <div class="section-title"><span>🏠</span> Vue d'ensemble</div>
-      <div id="overview-alerts"></div>
-      <div class="cards" id="overview-cards"></div>
-      <div class="chart-container">
-        <h4 style="margin-bottom:12px">CA par client 2025</h4>
-        <canvas id="chart-ca-client" height="280"></canvas>
-      </div>
-      <div class="chart-container">
-        <h4 style="margin-bottom:12px">Évolution Résultats (3 ans)</h4>
-        <canvas id="chart-resultats" height="260"></canvas>
-      </div>
-    </div>
-
-    <!-- MODULE 2: TRÉSORERIE -->
-    <div class="module" id="mod-tresorerie">
-      <div class="section-title"><span>💰</span> Trésorerie</div>
-      <div class="cards" id="treso-cards"></div>
-      <div class="section-title" style="margin-top:24px"><span>📊</span> Charges fixes mensuelles</div>
-      <div class="table-wrap" id="treso-charges-table"></div>
-      <div class="chart-container">
-        <h4 style="margin-bottom:12px">Historique soldes mensuels</h4>
-        <canvas id="chart-soldes" height="280"></canvas>
-      </div>
-      <div class="chart-container">
-        <h4 style="margin-bottom:12px">Projection 90 jours</h4>
-        <canvas id="chart-projection" height="260"></canvas>
-      </div>
-    </div>
-
-    <!-- MODULE 3: DETTES -->
-    <div class="module" id="mod-dettes">
-      <div class="section-title"><span>📋</span> Dettes fournisseurs</div>
-      <div class="cards" id="dettes-summary"></div>
-      <div class="table-wrap" id="dettes-table"></div>
-    </div>
-
-    <!-- MODULE 4: CRÉANCES -->
-    <div class="module" id="mod-creances">
-      <div class="section-title"><span>📊</span> Créances clients</div>
-      <div class="cards" id="creances-summary"></div>
-      <div id="creances-sections"></div>
-    </div>
-
-    <!-- MODULE 5: PIPELINE -->
-    <div class="module" id="mod-pipeline">
-      <div class="section-title"><span>🎯</span> Pipeline commercial</div>
-      <div class="cards" id="pipeline-summary"></div>
-      <div id="pipeline-list"></div>
-      <div style="margin-top:16px">
-        <button class="btn btn-primary" onclick="showAddPipeline()">+ Nouveau devis</button>
-      </div>
-    </div>
-
-    <!-- MODULE 6: CALENDRIER -->
-    <div class="module" id="mod-calendrier">
-      <div class="section-title"><span>📅</span> Calendrier & Rappels</div>
-      <div style="margin-bottom:16px">
-        <button class="btn btn-primary" onclick="showAddRappel()">+ Nouveau rappel</button>
-        <button class="btn btn-sm btn-secondary" onclick="requestNotifPermission()" style="margin-left:8px">🔔 Activer notifications</button>
-      </div>
-      <div id="calendrier-list" class="card"></div>
-    </div>
-  </div>
+<div class="topbar">
+<div class="topbar-l">
+<img src="data:image/jpeg;base64,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" alt="Déclic">
+<div class="topbar-t">Dashboard Financier</div>
 </div>
-
-<!-- MODAL ADD PIPELINE -->
-<div class="modal-overlay" id="modal-pipeline">
-  <div class="modal">
-    <h3>Nouveau devis</h3>
-    <div class="form-row">
-      <div class="form-group"><label>Client</label><input id="pip-client"></div>
-      <div class="form-group"><label>Projet</label><input id="pip-projet"></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label>Montant HT (MAD)</label><input id="pip-montant" type="number"></div>
-      <div class="form-group"><label>Probabilité (%)</label><input id="pip-proba" type="number" min="0" max="100" value="50"></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Statut</label>
-        <select id="pip-statut">
-          <option>En cours</option><option>Envoyé</option><option>Gagné</option><option>Perdu</option>
-        </select>
-      </div>
-      <div class="form-group"><label>Date envoi</label><input id="pip-date" type="date"></div>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:16px">
-      <button class="btn btn-primary" onclick="savePipeline()">Enregistrer</button>
-      <button class="btn btn-secondary" onclick="closeModal('modal-pipeline')">Annuler</button>
-    </div>
-  </div>
+<div class="topbar-r">
+<span class="sync-d" id="sdot"></span><span class="sync-l" id="slab">Connecté</span>
+<button class="tbtn" onclick="window.toggleTheme()">🌙</button>
+<button class="btn btn-sm btn-s" onclick="window.doLogout()">Déco.</button>
 </div>
-
-<!-- MODAL ADD RAPPEL -->
-<div class="modal-overlay" id="modal-rappel">
-  <div class="modal">
-    <h3>Nouveau rappel</h3>
-    <div class="form-row">
-      <div class="form-group"><label>Date</label><input id="rap-date" type="date"></div>
-      <div class="form-group"><label>Type</label>
-        <select id="rap-type"><option>Fiscal</option><option>Fournisseur</option><option>Crédit</option><option>Client</option><option>Autre</option></select>
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label>Description</label><input id="rap-desc"></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label>Urgence</label>
-        <select id="rap-urgence"><option>Normale</option><option>URGENT</option></select>
-      </div>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:16px">
-      <button class="btn btn-primary" onclick="saveRappel()">Enregistrer</button>
-      <button class="btn btn-secondary" onclick="closeModal('modal-rappel')">Annuler</button>
-    </div>
-  </div>
 </div>
-
+<div class="health-bar" id="health-bar"></div>
+<div class="nav" id="nav">
+<button class="active" onclick="window.showMod('overview',this)">🏠 Vue d'ensemble</button>
+<button onclick="window.showMod('tresorerie',this)">💰 Trésorerie</button>
+<button onclick="window.showMod('dettes',this)">📋 Dettes</button>
+<button onclick="window.showMod('creances',this)">📊 Créances</button>
+<button onclick="window.showMod('pipeline',this)">🎯 Pipeline</button>
+<button onclick="window.showMod('calendrier',this)">📅 Calendrier</button>
+</div>
+<div class="content">
+<div class="tbar">
+<button class="btn btn-sm btn-s" onclick="window.exportData()">📥 Export</button>
+<button class="btn btn-sm btn-s" onclick="document.getElementById('imp-f').click()">📤 Import</button>
+<input type="file" id="imp-f" accept=".json" style="display:none" onchange="window.importData(event)">
+</div>
+<!-- MODULES -->
+<div class="module active" id="mod-overview"></div>
+<div class="module" id="mod-tresorerie"></div>
+<div class="module" id="mod-dettes"></div>
+<div class="module" id="mod-creances"></div>
+<div class="module" id="mod-pipeline"></div>
+<div class="module" id="mod-calendrier"></div>
+</div>
+</div>
+<!-- MODAL GENERIC -->
+<div class="mo" id="modal"><div class="mo-c" id="modal-body"></div></div>
 <script type="module">
-// ========== FIREBASE CONFIG (ESM) ==========
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+import{getFirestore,doc,getDoc,setDoc,onSnapshot}from'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+const app=initializeApp({apiKey:"AIzaSyBCj_WKPfgmT_Z1Fx1ns5X0pvXfkrkCCcs",authDomain:"declic-dashboard.firebaseapp.com",projectId:"declic-dashboard",storageBucket:"declic-dashboard.firebasestorage.app",messagingSenderId:"119730078205",appId:"1:119730078205:web:d2b97722d725d040839994"});
+const db=getFirestore(app);
+const PASS='bouchrasamideclic2026';
+let D=null,CI={},openAccs=new Set();
+// ===== UTILS =====
+const fmt=n=>{if(n==null||isNaN(n))return'0';let s=Math.round(n).toString();let neg=s.startsWith('-');if(neg)s=s.slice(1);let r='';for(let i=s.length-1,c=0;i>=0;i--,c++){if(c>0&&c%3===0)r=' '+r;r=s[i]+r;}return(neg?'-':'')+r;};
+const fmtK=n=>fmt(n)+' MAD';
+const fmtD=d=>{if(!d)return'—';const[y,m,dd]=d.split('-');return dd+'/'+m+'/'+y;};
+const uid=()=>'_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+const daysBetween=(a,b)=>Math.floor((new Date(b)-new Date(a))/864e5);
+// ===== AUTH =====
+window.doLogin=()=>{if(document.getElementById('pwd').value===PASS){sessionStorage.setItem('da','1');document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='block';initApp();}else{document.getElementById('lerr').style.display='block';}};
+window.doLogout=()=>{sessionStorage.removeItem('da');location.reload();};
+// ===== THEME =====
+window.toggleTheme=()=>{document.body.classList.toggle('dark');document.querySelector('.topbar-r .tbtn').textContent=document.body.classList.contains('dark')?'☀️':'🌙';localStorage.setItem('dt',document.body.classList.contains('dark')?'d':'l');renderAll();};
+if(localStorage.getItem('dt')==='d'){document.body.classList.add('dark');document.querySelector('.topbar-r .tbtn').textContent='☀️';}
+// ===== NAV =====
+window.showMod=(id,btn)=>{document.querySelectorAll('.module').forEach(m=>m.classList.remove('active'));document.getElementById('mod-'+id).classList.add('active');document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');};
+// ===== MODAL =====
+const showModal=(html)=>{document.getElementById('modal-body').innerHTML=html;document.getElementById('modal').classList.add('show');};
+window.closeModal=()=>document.getElementById('modal').classList.remove('show');
+// ===== ACCORDION =====
+window.toggleAcc=(id)=>{if(openAccs.has(id))openAccs.delete(id);else openAccs.add(id);renderAll();};
+// ===== SEED DATA =====
+function seed(){return{
+soldeManuel:{comptePrincipal:169357,compteBis:340,caisse:2945,date:'2026-03-28'},
+historiqueSoldes:{'03/2025':392940,'04/2025':53512,'05/2025':364266,'06/2025':266776,'07/2025':247661,'08/2025':206155,'09/2025':15105,'10/2025':281918,'11/2025':484837,'12/2025':428475,'01/2026':257646,'02/2026':44778,'03/2026':169697},
+charges:{
+salaires:[{id:'s1',nom:'Boukhrissi Omar',role:'associé',net:20420},{id:'s2',nom:'Zoui Fayçal',role:'associé',net:25000},{id:'s3',nom:'Ben Abdel Hamid Sami',role:'associé/gérant',net:20420},{id:'s4',nom:'Ben Abdel Hamid Yassine',role:'associé/digital',net:10362},{id:'s5',nom:'Boutsis Bouchra',role:'admin',net:9694},{id:'s6',nom:'Ghoti Hassan',role:'production',net:14803},{id:'s7',nom:'El Ouafi Redouane',role:'terrain',net:5142},{id:'s8',nom:'Saihi Zhor',role:'support',net:4018},{id:'s9',nom:'Benabdelhamid Kamil',role:'média',net:13339},{id:'s10',nom:'Mesbah Abdellah',role:'terrain',net:12699},{id:'s11',nom:'Markhouss Ayoub',role:'activation',net:7000},{id:'s12',nom:'Bendaher Fouad',role:'logistique',net:5041},{id:'s13',nom:'Lkabouse Fayçal',role:'production',net:6334},{id:'s14',nom:'Ammar Zain',role:'digital',net:13000},{id:'s15',nom:'Dyab Mohammed',role:'création',net:9000},{id:'s16',nom:'Dardouz Youssef',role:'production',net:6500}],
+admin:[{id:'a1',nom:'CNSS',montant:43000},{id:'a2',nom:'IR',montant:24000}],
+credits:[{id:'c1',nom:'Eqdom (fin 2027)',montant:4013},{id:'c2',nom:'Sofac (fin 2027)',montant:8129},{id:'c3',nom:'RCI (fin 2030)',montant:3700},{id:'c4',nom:'Saham (fin 2028)',montant:12700}],
+logistique:[{id:'l1',nom:'Loyer',montant:16000},{id:'l2',nom:'Maroc Telecom',montant:4000},{id:'l3',nom:'Eau & Électricité',montant:1500}]
+},
+dettes:[
+{id:'d1',nom:'Les Idées en Fête',montant:631728,statut:'Actif',convention:'Pas de conv.',priorite:'URGENT',plan:'Min 25K/mois',debut:'2026-05-01',paiements:[]},
+{id:'d2',nom:'Gloria',montant:306400,statut:'Actif',convention:'Pas de conv.',priorite:'URGENT',plan:'Min 20K/mois',debut:'2026-05-01',paiements:[]},
+{id:'d3',nom:'Manycon (Hicham)',montant:191780,statut:'Inactif',convention:'Conv. signée',priorite:'Historique',plan:'—',debut:'2026-07-01',paiements:[]},
+{id:'d4',nom:'Fc Media',montant:185208,statut:'Inactif',convention:'Pas de conv.',priorite:'En négociation',plan:'—',debut:'',paiements:[]},
+{id:'d5',nom:'Néo Billboard',montant:175320,statut:'Inactif',convention:'Pas de conv.',priorite:'Historique',plan:'—',debut:'2026-07-01',paiements:[]},
+{id:'d6',nom:'Traiteur Baya',montant:117700,statut:'Actif',convention:'Pas de conv.',priorite:'Actif',plan:'Min 15K/mois',debut:'2026-06-01',paiements:[]},
+{id:'d7',nom:'INDUS pôle Technique',montant:110995,statut:'Inactif',convention:'Conv. signée',priorite:'Historique',plan:'—',debut:'2026-07-01',paiements:[]},
+{id:'d8',nom:'Optimus',montant:100200,statut:'Actif',convention:'Conv. en cours',priorite:'URGENT',plan:'35K+20K/mois',debut:'2026-04-01',paiements:[]},
+{id:'d9',nom:'Fly Drones',montant:84000,statut:'Inactif',convention:'Conv. signée',priorite:'Historique',plan:'—',debut:'2026-07-01',paiements:[]},
+{id:'d10',nom:'Yassine Mourabit',montant:80000,statut:'Inactif',convention:'Pas de conv.',priorite:'Interne',plan:'—',debut:'',paiements:[]},
+{id:'d11',nom:'Telquel',montant:61200,statut:'Inactif',convention:'Conv. signée',priorite:'Historique',plan:'—',debut:'2026-07-01',paiements:[]},
+{id:'d12',nom:'Loditec',montant:50960,statut:'Inactif',convention:'Pas de conv.',priorite:'Historique',plan:'—',debut:'2026-07-01',paiements:[]},
+{id:'d13',nom:'Atoutloc',montant:49800,statut:'Inactif',convention:'Pas de conv.',priorite:'Historique',plan:'—',debut:'2026-07-01',paiements:[]},
+{id:'d14',nom:'Adil Lotfi',montant:48000,statut:'Inactif',convention:'Pas de conv.',priorite:'Historique',plan:'—',debut:'2026-07-01',paiements:[]},
+{id:'d15',nom:'EKO6TM',montant:42000,statut:'Inactif',convention:'Pas de conv.',priorite:'Historique',plan:'—',debut:'2026-07-01',paiements:[]},
+{id:'d16',nom:'Light Digital',montant:41040,statut:'Inactif',convention:'Pas de conv.',priorite:'Historique',plan:'—',debut:'2026-07-01',paiements:[]},
+{id:'d17',nom:'Luxe Radio',montant:40800,statut:'Inactif',convention:'Conv. signée',priorite:'Historique',plan:'—',debut:'2026-07-01',paiements:[]},
+{id:'d18',nom:'Imperium Media',montant:34800,statut:'Inactif',convention:'Pas de conv.',priorite:'Historique',plan:'—',debut:'2026-07-01',paiements:[]},
+{id:'d19',nom:'Flex Covers',montant:32400,statut:'Inactif',convention:'Pas de conv.',priorite:'Historique',plan:'—',debut:'2026-07-01',paiements:[]}
+],
+dettesFiscales:{tva:50000,is:45000},
+creances:[
+{id:'cr1',client:'Société Marocaine des Tabacs (SMT)',total:280992,classeeSansSuite:false,factures:[
+{id:'f1',ref:'2026/0005',desc:'Dima Fiesta',montant:7392,echeance:'2026-04-30'},
+{id:'f2',ref:'2026/0015',desc:'Mini log',montant:66000,echeance:'2026-05-31'},
+{id:'f3',ref:'2026/0016',desc:'Budget Media',montant:44280,echeance:'2026-05-31'},
+{id:'f4',ref:'2026/0017',desc:'Déclinaisons',montant:10320,echeance:'2026-05-31'},
+{id:'f5',ref:'2026/0018',desc:'Forfait Création Graphique',montant:54000,echeance:'2026-05-31'},
+{id:'f6',ref:'2026/0019',desc:'Collaboration Dynamart',montant:96000,echeance:'2026-05-31'},
+{id:'f7',ref:'2026/0028',desc:'Adaptation Visuel Street Art',montant:3000,echeance:'2026-05-31'}]},
+{id:'cr2',client:'Centrale Automobile Chérifienne (CAC)',total:210439,classeeSansSuite:false,factures:[
+{id:'f8',ref:'2026/0010',desc:'—',montant:3168,echeance:'2026-04-30'},
+{id:'f9',ref:'2026/0011',desc:'—',montant:3802,echeance:'2026-04-30'},
+{id:'f10',ref:'2026/0012',desc:'—',montant:17107,echeance:'2026-04-30'},
+{id:'f11',ref:'2026/0020',desc:'Expo 1-54 Art Fair',montant:41580,echeance:'2026-04-30'},
+{id:'f12',ref:'2026/0021',desc:'—',montant:9042,echeance:'2026-04-30'},
+{id:'f13',ref:'2026/0022',desc:'—',montant:7814,echeance:'2026-04-30'},
+{id:'f14',ref:'2026/0024',desc:'—',montant:115368,echeance:'2026-04-30'},
+{id:'f15',ref:'2026/0025',desc:'—',montant:1998,echeance:'2026-05-31'},
+{id:'f16',ref:'2026/0026',desc:'—',montant:26400,echeance:'2026-05-31'},
+{id:'f17',ref:'2026/0029',desc:'—',montant:3300,echeance:'2026-05-31'}]},
+{id:'cr3',client:'Volvo — Scandinavian Auto',total:66306,classeeSansSuite:false,factures:[
+{id:'f18',ref:'2025/0267',desc:'—',montant:66306,echeance:'2026-01-31'}]},
+{id:'cr4',client:'Yango',total:35799,classeeSansSuite:false,factures:[
+{id:'f19',ref:'PE Nov',desc:'UGC',montant:4140,echeance:'2025-11-30'},
+{id:'f20',ref:'2026/0014',desc:'Yango UGC Fév',montant:1449,echeance:'2026-04-30'},
+{id:'f21',ref:'2026/0030',desc:'Yango FEES Mars',montant:24000,echeance:'2026-04-30'},
+{id:'f22',ref:'2026/0031',desc:'Yango UGC Mars',montant:6210,echeance:'2026-04-30'}]},
+{id:'cr5',client:'Créances anciennes (prob. faible)',total:156233,classeeSansSuite:false,factures:[
+{id:'f23',ref:'—',desc:'Eko6tem',montant:60000,echeance:''},
+{id:'f24',ref:'—',desc:'RA Motor Sud-Agadir',montant:39120,echeance:''},
+{id:'f25',ref:'—',desc:'K.G.K Shoes',montant:25920,echeance:''},
+{id:'f26',ref:'—',desc:'Most Food',montant:20000,echeance:''},
+{id:'f27',ref:'—',desc:'G4S',montant:9744,echeance:''},
+{id:'f28',ref:'—',desc:'Universal Music',montant:1449,echeance:''}]}
+],
+caClient2025:[{client:'SBM',montant:5448115},{client:'CAC',montant:3843751},{client:'Stellantis',montant:1669029},{client:'LK Auto',montant:1077456},{client:'Scandinavian',montant:526695},{client:'Yango',montant:364185},{client:'Universal Music',montant:232564},{client:'Autres',montant:545400}],
+resultats:{ca:[9120485,14621356,13683716],margeBrute:[2164387,3953919,4196437],tauxMarge:[23.7,27.0,30.7],chargesPersonnel:[1086982,2740642,3656479],ebe:[626574,926963,266678],resultatNet:[413932,689166,246799],annees:['2023','2024','2025']},
+pipeline:[
+{id:'p1',client:'DWTC/Phillip',projet:'GITEX Africa SM Production',montant:165000,proba:80,statut:'En cours',date:'2026-03-20'},
+{id:'p2',client:'Kaoun International',projet:'GITEX SM Management',montant:120000,proba:60,statut:'En cours',date:'2026-03-25'},
+{id:'p3',client:'Sisal Loterie Maroc',projet:'AO Lots 1 & 2',montant:840000,proba:40,statut:'Envoyé',date:'2026-03-15'},
+{id:'p4',client:'Alfa Romeo / Passage Fitness',projet:'Co-branding',montant:85000,proba:50,statut:'En cours',date:'2026-03-22'},
+{id:'p5',client:'Stellantis Morocco',projet:'Jeep Compass Launch',montant:950000,proba:35,statut:'En cours',date:'2026-03-10'}],
+calendrier:[
+{id:'cl1',date:'2026-04-01',type:'Fiscal',desc:'Déclaration délais paiement 2025 (DGI/SIMPL)',urgence:'URGENT'},
+{id:'cl2',date:'2026-04-14',type:'Crédit',desc:'Échéances crédits (Eqdom+Sofac+RCI+Saham = 28 542 MAD)',urgence:'Normale'},
+{id:'cl3',date:'2026-04-15',type:'Fiscal',desc:'CNSS (~43K) + IR (~24K)',urgence:'Normale'},
+{id:'cl4',date:'2026-04-30',type:'Fournisseur',desc:'1er versement Optimus (35K)',urgence:'URGENT'},
+{id:'cl5',date:'2026-04-30',type:'Fiscal',desc:'Déclaration trimestrielle T1 2026',urgence:'URGENT'},
+{id:'cl6',date:'2026-05-01',type:'Fournisseur',desc:'1er versement Les Idées en Fête (25K)',urgence:'URGENT'},
+{id:'cl7',date:'2026-05-01',type:'Fournisseur',desc:'1er versement Gloria (20K)',urgence:'URGENT'},
+{id:'cl8',date:'2026-05-14',type:'Crédit',desc:'Échéances crédits mai (28 542 MAD)',urgence:'Normale'},
+{id:'cl9',date:'2026-06-01',type:'Fournisseur',desc:'1er versement Traiteur Baya (15K)',urgence:'Normale'}],
+paiementsEnCours:[],
+todoAlerts:[
+{id:'t1',desc:'Relancer Fc Media pour rapprochement comptable',done:false},
+{id:'t2',desc:'Relancer Optimus pour signature convention',done:false},
+{id:'t3',desc:'Relancer Volvo pour créance en retard (66 306 MAD)',done:false}],
+releves:[],
+seuilAlerte:100000
+};}
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBCj_WKPfgmT_Z1Fx1ns5X0pvXfkrkCCcs",
-  authDomain: "declic-dashboard.firebaseapp.com",
-  projectId: "declic-dashboard",
-  storageBucket: "declic-dashboard.firebasestorage.app",
-  messagingSenderId: "119730078205",
-  appId: "1:119730078205:web:d2b97722d725d040839994"
+// ===== COMPUTED =====
+function getComputedData(){
+const c=D.charges;
+const totSal=c.salaires.reduce((s,x)=>s+x.net,0);
+const totAdmin=c.admin.reduce((s,x)=>s+x.montant,0);
+const totCred=c.credits.reduce((s,x)=>s+x.montant,0);
+const totLog=c.logistique.reduce((s,x)=>s+x.montant,0);
+const burnRate=totSal+totAdmin+totCred+totLog;
+const sm=D.soldeManuel;
+const soldeBrut=sm.comptePrincipal+sm.compteBis+sm.caisse;
+const totPEC=D.paiementsEnCours.reduce((s,x)=>s+x.montant,0);
+const soldeAjuste=soldeBrut-totPEC;
+const joursSurvie=burnRate>0?Math.floor(soldeAjuste/(burnRate/30)):999;
+const totDettes=D.dettes.reduce((s,x)=>{const paid=x.paiements?x.paiements.reduce((ss,p)=>ss+p.montant,0):0;return s+(x.montant-paid);},0)+D.dettesFiscales.tva+D.dettesFiscales.is;
+const today=new Date().toISOString().slice(0,10);
+const crActives=D.creances.filter(c=>!c.classeeSansSuite);
+const totCreances=crActives.reduce((s,c)=>s+c.factures.reduce((ss,f)=>ss+f.montant,0),0);
+const crRetard=crActives.reduce((s,c)=>s+c.factures.filter(f=>f.echeance&&f.echeance<today).reduce((ss,f)=>ss+f.montant,0),0);
+const ratioCouv=totDettes>0?(totCreances/totDettes*100):999;
+// Health score
+let score=100;
+if(joursSurvie<30)score-=40;else if(joursSurvie<60)score-=20;
+if(ratioCouv<50)score-=30;else if(ratioCouv<80)score-=15;
+if(crRetard>100000)score-=20;else if(crRetard>50000)score-=10;
+const hist=Object.values(D.historiqueSoldes);
+if(hist.length>=3){const trend=hist[hist.length-1]-hist[hist.length-3];if(trend<-100000)score-=10;}
+const health=score>=70?'green':score>=40?'orange':'red';
+const healthLabel=score>=70?'Santé financière correcte':score>=40?'Vigilance requise':'Situation critique';
+return{totSal,totAdmin,totCred,totLog,burnRate,soldeBrut,soldeAjuste,totPEC,joursSurvie,totDettes,totCreances,crRetard,ratioCouv,health,healthLabel,score};
+}
+
+// ===== RENDER ALL =====
+function renderAll(){
+if(!D)return;
+const cd=getComputedData();
+renderHealth(cd);
+renderOverview(cd);
+renderTresorerie(cd);
+renderDettes();
+renderCreances();
+renderPipeline();
+renderCalendrier();
+renderCharts(cd);
+}
+
+// ===== HEALTH =====
+function renderHealth(cd){
+document.getElementById('health-bar').innerHTML=`<div class="health-dot ${cd.health}"></div><div class="health-txt">${cd.healthLabel} (score: ${cd.score}/100) — Solde ajusté: ${fmtK(cd.soldeAjuste)} | Survie: ${cd.joursSurvie}j | Ratio couverture: ${Math.round(cd.ratioCouv)}%</div>`;
+}
+
+// ===== OVERVIEW =====
+function renderOverview(cd){
+const today=new Date().toISOString().slice(0,10);
+let alerts='';
+if(cd.joursSurvie<30)alerts+=`<div class="alrt alrt-d">⚠️ <b>ALERTE CRITIQUE</b> — ${cd.joursSurvie} jours de trésorerie</div>`;
+const urg=D.dettes.filter(x=>x.priorite==='URGENT');
+if(urg.length)alerts+=`<div class="alrt alrt-w">🚨 <b>${urg.length} fournisseurs URGENT</b> — ${urg.map(x=>x.nom).join(', ')}</div>`;
+if(cd.crRetard>0)alerts+=`<div class="alrt alrt-d">⏰ <b>Créances en retard:</b> ${fmtK(cd.crRetard)}</div>`;
+if(cd.soldeAjuste<D.seuilAlerte)alerts+=`<div class="alrt alrt-w">💰 Solde sous le seuil d'alerte (${fmtK(D.seuilAlerte)})</div>`;
+// Auto alerts: clients > 60 days
+D.creances.filter(c=>!c.classeeSansSuite).forEach(c=>{c.factures.forEach(f=>{if(f.echeance){const d=daysBetween(f.echeance,today);if(d>60)alerts+=`<div class="alrt alrt-w">📋 ${c.client} — Facture ${f.ref} en retard de ${d} jours</div>`;}});});
+// Calendar J-3
+D.calendrier.forEach(c=>{const d=daysBetween(today,c.date);if(d>=0&&d<=3)alerts+=`<div class="alrt alrt-i">📅 J-${d}: ${c.desc}</div>`;});
+// Todos
+let todos='';
+if(D.todoAlerts&&D.todoAlerts.length){todos='<div class="stitle" style="margin-top:16px">📌 Actions à mener</div>';
+D.todoAlerts.forEach(t=>{todos+=`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--brd)"><input type="checkbox" ${t.done?'checked':''} onchange="window.toggleTodo('${t.id}')"><span style="${t.done?'text-decoration:line-through;opacity:.5':''}">${t.desc}</span><button class="btn btn-sm btn-d" onclick="window.delTodo('${t.id}')">✕</button></div>`;});
+todos+=`<div style="margin-top:8px"><button class="btn btn-sm btn-p" onclick="window.addTodoPrompt()">+ Action</button></div>`;}
+
+document.getElementById('mod-overview').innerHTML=`
+<div class="stitle">🏠 Vue d'ensemble</div>
+${alerts}
+<div class="cards">
+<div class="card"><div class="card-l">Solde ajusté</div><div class="card-v ${cd.soldeAjuste<100000?'red':'green'}">${fmtK(cd.soldeAjuste)}</div><div class="card-s">Brut: ${fmtK(cd.soldeBrut)} — Paiements en cours: ${fmtK(cd.totPEC)}</div></div>
+<div class="card"><div class="card-l">Burn rate mensuel</div><div class="card-v red">${fmtK(cd.burnRate)}</div><div class="card-s">${D.charges.salaires.length} salariés + fixes</div></div>
+<div class="card"><div class="card-l">Jours de survie</div><div class="card-v ${cd.joursSurvie<30?'red':cd.joursSurvie<60?'orange':'green'}">${cd.joursSurvie} j</div></div>
+<div class="card"><div class="card-l">Dettes fournisseurs (restant)</div><div class="card-v red">${fmtK(cd.totDettes)}</div></div>
+<div class="card"><div class="card-l">Créances actives</div><div class="card-v blue">${fmtK(cd.totCreances)}</div></div>
+<div class="card"><div class="card-l">Ratio couverture</div><div class="card-v ${cd.ratioCouv>80?'green':cd.ratioCouv>50?'orange':'red'}">${Math.round(cd.ratioCouv)}%</div><div class="card-s">Créances / Dettes</div></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div class="cht"><h4>CA par client 2025</h4><canvas id="ch-ca" height="180"></canvas></div>
+<div class="cht"><h4>Évolution Résultats (3 ans)</h4><canvas id="ch-res" height="180"></canvas></div>
+</div>
+${todos}
+<div class="stitle" style="margin-top:16px">⚙️ Paramètres</div>
+<div class="frow">
+<div class="fgrp"><label>Seuil d'alerte solde (MAD)</label><input type="number" value="${D.seuilAlerte||100000}" onchange="window.updateSeuil(this.value)"></div>
+</div>`;
+}
+
+// ===== TRESORERIE =====
+function renderTresorerie(cd){
+const sm=D.soldeManuel;
+const accId=(cat)=>openAccs.has(cat)?'open':'';
+const mkAcc=(id,title,total,content)=>`<div class="acc"><div class="acc-h ${accId(id)}" onclick="window.toggleAcc('${id}')"><span>${title} — <b>${fmtK(total)}</b></span><span class="arr">▶</span></div><div class="acc-b">${content}</div></div>`;
+// Salaires
+let salRows=D.charges.salaires.map(s=>`<tr><td>${s.nom}</td><td>${s.role}</td><td style="text-align:right;font-weight:600">${fmtK(s.net)}</td><td><button class="btn btn-sm btn-s" onclick="window.editSalaire('${s.id}')">✎</button> <button class="btn btn-sm btn-d" onclick="window.delSalaire('${s.id}')">✕</button></td></tr>`).join('');
+salRows+=`<tr><td colspan="4"><button class="btn btn-sm btn-p" onclick="window.addSalaire()">+ Employé</button></td></tr>`;
+const salTable=`<table><thead><tr><th>Nom</th><th>Poste</th><th style="text-align:right">Net</th><th></th></tr></thead><tbody>${salRows}</tbody></table>`;
+// Generic charge table
+const mkChargeTable=(arr,cat)=>{let rows=arr.map(x=>`<tr><td>${x.nom}</td><td style="text-align:right;font-weight:600">${fmtK(x.montant)}</td><td><button class="btn btn-sm btn-s" onclick="window.editCharge('${cat}','${x.id}')">✎</button> <button class="btn btn-sm btn-d" onclick="window.delCharge('${cat}','${x.id}')">✕</button></td></tr>`).join('');
+rows+=`<tr><td colspan="3"><button class="btn btn-sm btn-p" onclick="window.addCharge('${cat}')">+ Ligne</button></td></tr>`;
+return`<table><thead><tr><th>Libellé</th><th style="text-align:right">Montant</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;};
+
+document.getElementById('mod-tresorerie').innerHTML=`
+<div class="stitle">💰 Trésorerie</div>
+<div class="cards">
+<div class="card"><div class="card-l">Compte principal</div><div class="card-v">${fmtK(sm.comptePrincipal)}</div><div class="card-s"><button class="btn btn-sm btn-s" onclick="window.editSolde()">Modifier</button></div></div>
+<div class="card"><div class="card-l">Compte BIS</div><div class="card-v">${fmtK(sm.compteBis)}</div></div>
+<div class="card"><div class="card-l">Caisse</div><div class="card-v">${fmtK(sm.caisse)}</div></div>
+<div class="card"><div class="card-l">Solde ajusté</div><div class="card-v ${cd.soldeAjuste<100000?'red':'green'}">${fmtK(cd.soldeAjuste)}</div><div class="card-s">Après paiements en cours</div></div>
+</div>
+<div class="stitle">📄 Importer un relevé bancaire (PDF Société Générale)</div>
+<div class="upload-zone" id="upload-zone" onclick="document.getElementById('pdf-input').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="event.preventDefault();this.classList.remove('dragover');window.handlePDF(event.dataTransfer.files)">
+<div style="font-size:24px;margin-bottom:8px">📄</div>
+<div>Glisser un PDF ici ou cliquer pour sélectionner</div>
+<input type="file" id="pdf-input" accept=".pdf" style="display:none" onchange="window.handlePDF(this.files)" multiple>
+</div>
+<div id="pdf-result"></div>
+<div class="stitle" style="margin-top:16px">💳 Paiements en cours (non encore débités)</div>
+<div class="tw" id="pec-table"></div>
+<div style="margin-bottom:16px"><button class="btn btn-p" onclick="window.addPEC()">+ Paiement en cours</button></div>
+<div class="stitle">📊 Charges fixes mensuelles — Total: ${fmtK(cd.burnRate)}</div>
+${mkAcc('sal','Salaires ('+D.charges.salaires.length+' pers.)',cd.totSal,salTable)}
+${mkAcc('adm','Administratif',cd.totAdmin,mkChargeTable(D.charges.admin,'admin'))}
+${mkAcc('crd','Crédits',cd.totCred,mkChargeTable(D.charges.credits,'credits'))}
+${mkAcc('log','Logistique',cd.totLog,mkChargeTable(D.charges.logistique,'logistique'))}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px">
+<div class="cht"><h4>Historique soldes mensuels</h4><canvas id="ch-sol" height="160"></canvas></div>
+<div class="cht"><h4>Projection 90 jours</h4><canvas id="ch-proj" height="160"></canvas></div>
+</div>`;
+renderPEC();
+}
+
+// ===== PEC TABLE =====
+function renderPEC(){
+const el=document.getElementById('pec-table');
+if(!el)return;
+if(!D.paiementsEnCours.length){el.innerHTML='<p style="color:var(--text2)">Aucun paiement en cours</p>';return;}
+let rows=D.paiementsEnCours.map(p=>`<tr><td>${p.fournisseur}</td><td style="text-align:right;font-weight:600">${fmtK(p.montant)}</td><td>${p.moyen}</td><td>${fmtD(p.date)}</td><td><button class="btn btn-sm btn-d" onclick="window.delPEC('${p.id}')">✕</button></td></tr>`).join('');
+el.innerHTML=`<table><thead><tr><th>Fournisseur</th><th style="text-align:right">Montant</th><th>Moyen</th><th>Date</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+// ===== DETTES =====
+let detteSort={col:'montant',dir:'desc'};
+function renderDettes(){
+const sorted=[...D.dettes].sort((a,b)=>{
+let va=a[detteSort.col],vb=b[detteSort.col];
+if(typeof va==='string')va=va.toLowerCase();if(typeof vb==='string')vb=vb.toLowerCase();
+if(va<vb)return detteSort.dir==='asc'?-1:1;if(va>vb)return detteSort.dir==='asc'?1:-1;return 0;});
+const totDettes=D.dettes.reduce((s,x)=>{const paid=x.paiements?x.paiements.reduce((ss,p)=>ss+p.montant,0):0;return s+(x.montant-paid);},0);
+const actifs=D.dettes.filter(x=>x.statut==='Actif');
+const urgents=D.dettes.filter(x=>x.priorite==='URGENT');
+const arrow=(col)=>detteSort.col===col?(detteSort.dir==='asc'?'↑':'↓'):'';
+const pTag=p=>{if(p==='URGENT')return'<span class="tag tag-u">URGENT</span>';if(p==='Actif')return'<span class="tag tag-a">Actif</span>';return'<span class="tag tag-i">'+p+'</span>';};
+let rows=sorted.map(x=>{
+const paid=x.paiements?x.paiements.reduce((s,p)=>s+p.montant,0):0;
+const reste=x.montant-paid;
+const pct=x.montant>0?Math.round(paid/x.montant*100):0;
+const accOpen=openAccs.has('det_'+x.id);
+let hist='';
+if(x.paiements&&x.paiements.length){hist=x.paiements.map(p=>`<div style="font-size:11px;padding:2px 0">${fmtD(p.date)} — ${fmtK(p.montant)} (${p.moyen||'—'})</div>`).join('');}
+return`<tr><td style="font-weight:600">${x.nom}</td><td style="text-align:right">${fmtK(x.montant)}</td><td style="text-align:right;color:var(--grn)">${fmtK(paid)}</td><td style="text-align:right;font-weight:600">${fmtK(reste)}</td><td><div style="width:60px;height:4px;background:var(--bg3);border-radius:2px"><div style="width:${pct}%;height:100%;background:var(--grn);border-radius:2px"></div></div><span style="font-size:10px">${pct}%</span></td><td>${x.statut==='Actif'?'<span class="tag tag-a">Actif</span>':'<span class="tag tag-i">Inactif</span>'}</td><td>${x.convention}</td><td>${pTag(x.priorite)}</td><td>${fmtD(x.debut)}</td><td><button class="btn btn-sm btn-s" onclick="window.editDette('${x.id}')">✎</button> <button class="btn btn-sm btn-d" onclick="window.delDette('${x.id}')">✕</button></td></tr>${accOpen?`<tr><td colspan="10" style="background:var(--bg2);padding:8px 14px"><b>Historique paiements:</b>${hist||' Aucun'}</td></tr>`:''}`;}).join('');
+
+document.getElementById('mod-dettes').innerHTML=`
+<div class="stitle">📋 Dettes fournisseurs</div>
+<div class="cards">
+<div class="card"><div class="card-l">Total restant</div><div class="card-v red">${fmtK(totDettes)}</div></div>
+<div class="card"><div class="card-l">Fournisseurs actifs</div><div class="card-v orange">${actifs.length}</div></div>
+<div class="card"><div class="card-l">Cas urgents</div><div class="card-v red">${urgents.length}</div></div>
+<div class="card"><div class="card-l">Dettes fiscales</div><div class="card-v red">${fmtK(D.dettesFiscales.tva+D.dettesFiscales.is)}</div><div class="card-s">TVA: ${fmtK(D.dettesFiscales.tva)} | IS: ${fmtK(D.dettesFiscales.is)}</div></div>
+</div>
+<div style="margin-bottom:10px"><button class="btn btn-p" onclick="window.addDette()">+ Fournisseur</button></div>
+<div class="tw"><table><thead><tr>
+<th onclick="window.sortDettes('nom')">Fournisseur ${arrow('nom')}</th>
+<th onclick="window.sortDettes('montant')" style="text-align:right">Montant initial ${arrow('montant')}</th>
+<th style="text-align:right">Payé</th><th style="text-align:right">Reste</th><th>Progr.</th>
+<th onclick="window.sortDettes('statut')">Statut ${arrow('statut')}</th>
+<th onclick="window.sortDettes('convention')">Convention ${arrow('convention')}</th>
+<th onclick="window.sortDettes('priorite')">Priorité ${arrow('priorite')}</th>
+<th onclick="window.sortDettes('debut')">Début ${arrow('debut')}</th>
+<th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+window.sortDettes=(col)=>{if(detteSort.col===col)detteSort.dir=detteSort.dir==='asc'?'desc':'asc';else{detteSort.col=col;detteSort.dir='desc';}renderDettes();};
+
+// ===== CREANCES =====
+function renderCreances(){
+const today=new Date().toISOString().slice(0,10);
+const crActives=D.creances.filter(c=>!c.classeeSansSuite);
+const crClassees=D.creances.filter(c=>c.classeeSansSuite);
+const totActives=crActives.reduce((s,c)=>s+c.factures.reduce((ss,f)=>ss+f.montant,0),0);
+const totRetard=crActives.reduce((s,c)=>s+c.factures.filter(f=>f.echeance&&f.echeance<today).reduce((ss,f)=>ss+f.montant,0),0);
+const agingTag=(ech)=>{if(!ech)return'<span class="tag tag-i">N/A</span>';const d=daysBetween(ech,today);if(d<=0)return'<span class="tag tag-a">À jour</span>';if(d<=30)return'<span class="tag tag-w">J+'+d+'</span>';if(d<=60)return'<span class="tag tag-u">J+'+d+'</span>';return'<span class="tag tag-r">J+'+d+'</span>';};
+let html=`<div class="stitle">📊 Créances clients</div>
+<div class="cards">
+<div class="card"><div class="card-l">Créances actives</div><div class="card-v blue">${fmtK(totActives)}</div></div>
+<div class="card"><div class="card-l">En retard</div><div class="card-v red">${fmtK(totRetard)}</div></div>
+<div class="card"><div class="card-l">Délai moyen encaissement</div><div class="card-v orange">${calcDelaiMoyen()} j</div></div>
+</div>
+<div style="margin-bottom:10px"><button class="btn btn-p" onclick="window.addCreanceClient()">+ Client</button></div>`;
+// Active clients
+crActives.forEach(c=>{
+const accOpen=openAccs.has('cr_'+c.id);
+const totC=c.factures.reduce((s,f)=>s+f.montant,0);
+let facRows=c.factures.map(f=>`<tr><td>${f.ref}</td><td>${f.desc}</td><td style="text-align:right;font-weight:600">${fmtK(f.montant)}</td><td>${fmtD(f.echeance)}</td><td>${agingTag(f.echeance)}</td><td><button class="btn btn-sm btn-s" onclick="window.editFacture('${c.id}','${f.id}')">✎</button> <button class="btn btn-sm btn-d" onclick="window.delFacture('${c.id}','${f.id}')">✕</button></td></tr>`).join('');
+facRows+=`<tr><td colspan="6"><button class="btn btn-sm btn-p" onclick="window.addFacture('${c.id}')">+ Facture</button></td></tr>`;
+html+=`<div class="acc"><div class="acc-h ${accOpen?'open':''}" onclick="window.toggleAcc('cr_${c.id}')"><span>${c.client} — <b>${fmtK(totC)}</b></span><div style="display:flex;gap:6px;align-items:center"><button class="btn btn-sm btn-s" onclick="event.stopPropagation();window.editCreanceClient('${c.id}')">✎</button><button class="btn btn-sm btn-d" onclick="event.stopPropagation();window.classerSansSuite('${c.id}')">Classer sans suite</button><span class="arr">▶</span></div></div><div class="acc-b"><table><thead><tr><th>Réf.</th><th>Description</th><th style="text-align:right">Montant</th><th>Échéance</th><th>Aging</th><th></th></tr></thead><tbody>${facRows}</tbody></table></div></div>`;
+});
+// Classées sans suite
+if(crClassees.length){
+html+=`<div class="stitle" style="margin-top:16px;border-color:var(--text2)">🗃️ Classées sans suite</div>`;
+crClassees.forEach(c=>{const totC=c.factures.reduce((s,f)=>s+f.montant,0);
+html+=`<div style="padding:8px;border:1px solid var(--brd);border-radius:6px;margin-bottom:6px;opacity:.6;display:flex;justify-content:space-between;align-items:center"><span>${c.client} — ${fmtK(totC)}</span><button class="btn btn-sm btn-g" onclick="window.reactiver('${c.id}')">Réactiver</button></div>`;});}
+document.getElementById('mod-creances').innerHTML=html;
+}
+function calcDelaiMoyen(){
+const today=new Date().toISOString().slice(0,10);
+let total=0,count=0;
+D.creances.filter(c=>!c.classeeSansSuite).forEach(c=>{c.factures.forEach(f=>{if(f.echeance){const d=daysBetween(f.echeance,today);if(d>0){total+=d;count++;}}});});
+return count>0?Math.round(total/count):0;
+}
+
+// ===== PIPELINE =====
+function renderPipeline(){
+if(!D.pipeline)D.pipeline=[];
+const total=D.pipeline.reduce((s,x)=>s+x.montant,0);
+const pondere=D.pipeline.reduce((s,x)=>s+x.montant*x.proba/100,0);
+const actifs=D.pipeline.filter(x=>x.statut==='En cours'||x.statut==='Envoyé');
+const gagnes=D.pipeline.filter(x=>x.statut==='Gagné');
+const tx=D.pipeline.length?Math.round(gagnes.length/D.pipeline.length*100):0;
+const stC={'En cours':'var(--org)','Envoyé':'var(--blu)','Gagné':'var(--grn)','Perdu':'var(--dgr)'};
+let list=D.pipeline.map(p=>`<div class="pip-c"><div style="display:flex;justify-content:space-between;align-items:center"><div><b>${p.client}</b> <span style="color:var(--text2)">${p.projet}</span></div><div style="font-weight:700;color:var(--grn)">${fmtK(p.montant)}</div></div><div style="display:flex;gap:12px;font-size:12px;color:var(--text2);margin-top:6px"><span style="color:${stC[p.statut]||'var(--text2)'};font-weight:600">${p.statut}</span><span>Prob: ${p.proba}%</span><span>Pondéré: ${fmtK(p.montant*p.proba/100)}</span><span>${fmtD(p.date)}</span><button class="btn btn-sm btn-s" onclick="window.editPipeline('${p.id}')">✎</button><button class="btn btn-sm btn-d" onclick="window.delPipeline('${p.id}')">✕</button></div></div>`).join('');
+document.getElementById('mod-pipeline').innerHTML=`
+<div class="stitle">🎯 Pipeline commercial</div>
+<div class="cards">
+<div class="card"><div class="card-l">Pipeline total</div><div class="card-v blue">${fmtK(total)}</div></div>
+<div class="card"><div class="card-l">Pipeline pondéré</div><div class="card-v green">${fmtK(pondere)}</div></div>
+<div class="card"><div class="card-l">Devis actifs</div><div class="card-v">${actifs.length}</div></div>
+<div class="card"><div class="card-l">Taux conversion</div><div class="card-v">${tx}%</div></div>
+</div>
+<div style="margin-bottom:10px"><button class="btn btn-p" onclick="window.addPipeline()">+ Nouveau devis</button></div>
+${list}`;
+}
+
+// ===== CALENDRIER =====
+function renderCalendrier(){
+const today=new Date().toISOString().slice(0,10);
+const sorted=[...D.calendrier].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+let list=sorted.map(c=>{const isPast=c.date<today;const d=daysBetween(today,c.date);const isClose=d>=0&&d<=3;
+const cls=c.urgence==='URGENT'?'tag-u':isClose?'tag-w':'tag-a';
+return`<div class="cal-i" style="${isPast?'opacity:.5':''}"><div class="cal-d">${fmtD(c.date)}</div><div style="flex:1"><div>${c.desc}</div><div style="margin-top:3px"><span class="tag ${cls}">${c.urgence}</span> <span class="tag tag-i">${c.type}</span></div></div><button class="btn btn-sm btn-d" onclick="window.delCal('${c.id}')">✕</button></div>`;}).join('');
+document.getElementById('mod-calendrier').innerHTML=`
+<div class="stitle">📅 Calendrier & Rappels</div>
+<div style="margin-bottom:10px"><button class="btn btn-p" onclick="window.addCal()">+ Rappel</button> <button class="btn btn-sm btn-s" onclick="window.reqNotif()">🔔 Notifications</button></div>
+<div class="card">${list||'<p style="padding:12px;color:var(--text2)">Aucun rappel</p>'}</div>`;
+}
+
+// ===== CHARTS =====
+function renderCharts(cd){
+const isDk=document.body.classList.contains('dark');
+const gc=isDk?'#333':'#eee',tc=isDk?'#aaa':'#666';
+Object.values(CI).forEach(c=>{try{c.destroy();}catch(e){}});CI={};
+const ch1=document.getElementById('ch-ca');
+if(ch1)CI.ca=new Chart(ch1,{type:'bar',data:{labels:D.caClient2025.map(x=>x.client),datasets:[{label:'CA (MAD)',data:D.caClient2025.map(x=>x.montant),backgroundColor:['#E30613','#2980b9','#27ae60','#f39c12','#8e44ad','#e67e22','#1abc9c','#95a5a6']}]},options:{responsive:true,indexAxis:'y',scales:{x:{ticks:{color:tc,callback:v=>fmt(v)},grid:{color:gc}},y:{ticks:{color:tc},grid:{display:false}}},plugins:{legend:{display:false}}}});
+const ch2=document.getElementById('ch-res');
+if(ch2)CI.res=new Chart(ch2,{type:'bar',data:{labels:D.resultats.annees,datasets:[{label:'CA',data:D.resultats.ca,backgroundColor:'#2980b9'},{label:'Marge brute',data:D.resultats.margeBrute,backgroundColor:'#27ae60'},{label:'EBE',data:D.resultats.ebe,backgroundColor:'#f39c12'},{label:'Résultat net',data:D.resultats.resultatNet,backgroundColor:'#E30613'}]},options:{responsive:true,scales:{x:{ticks:{color:tc},grid:{color:gc}},y:{ticks:{color:tc,callback:v=>fmt(v)},grid:{color:gc}}},plugins:{legend:{labels:{color:tc,boxWidth:12,font:{size:10}}}}}});
+const ch3=document.getElementById('ch-sol');
+if(ch3){const h=D.historiqueSoldes;CI.sol=new Chart(ch3,{type:'line',data:{labels:Object.keys(h),datasets:[{label:'Solde',data:Object.values(h),borderColor:'#E30613',backgroundColor:'rgba(227,6,19,.1)',fill:true,tension:.3}]},options:{responsive:true,scales:{x:{ticks:{color:tc},grid:{color:gc}},y:{ticks:{color:tc,callback:v=>fmt(v)},grid:{color:gc}}},plugins:{legend:{display:false}}}});}
+const ch4=document.getElementById('ch-proj');
+if(ch4){
+const today2=new Date().toISOString().slice(0,10);
+const projL=['Mois 0','Mois 1','Mois 2','Mois 3'];
+const projD=[cd.soldeAjuste];
+const crKeys=D.creances.filter(c=>!c.classeeSansSuite);
+const encM1=crKeys.reduce((s,c)=>s+c.factures.filter(f=>f.echeance&&f.echeance.slice(0,7)==='2026-04').reduce((ss,f)=>ss+f.montant,0),0);
+const encM2=crKeys.reduce((s,c)=>s+c.factures.filter(f=>f.echeance&&f.echeance.slice(0,7)==='2026-05').reduce((ss,f)=>ss+f.montant,0),0);
+projD.push(projD[0]-cd.burnRate+encM1);projD.push(projD[1]-cd.burnRate+encM2);projD.push(projD[2]-cd.burnRate);
+CI.proj=new Chart(ch4,{type:'line',data:{labels:projL,datasets:[{label:'Projection',data:projD,borderColor:'#2980b9',backgroundColor:'rgba(41,128,185,.1)',fill:true,tension:.3},{label:'Seuil',data:[D.seuilAlerte,D.seuilAlerte,D.seuilAlerte,D.seuilAlerte],borderColor:'#e74c3c',borderDash:[5,5],pointRadius:0}]},options:{responsive:true,scales:{x:{ticks:{color:tc},grid:{color:gc}},y:{ticks:{color:tc,callback:v=>fmt(v)},grid:{color:gc}}},plugins:{legend:{labels:{color:tc,boxWidth:12,font:{size:10}}}}}});}
+}
+
+// ===== CRUD FUNCTIONS =====
+// -- Solde manuel --
+window.editSolde=()=>{const sm=D.soldeManuel;showModal(`<h3>Modifier soldes</h3>
+<div class="frow"><div class="fgrp"><label>Compte principal</label><input id="m-cp" type="number" value="${sm.comptePrincipal}"></div><div class="fgrp"><label>Compte BIS</label><input id="m-cb" type="number" value="${sm.compteBis}"></div></div>
+<div class="frow"><div class="fgrp"><label>Caisse</label><input id="m-ca" type="number" value="${sm.caisse}"></div><div class="fgrp"><label>Date</label><input id="m-dt" type="date" value="${sm.date}"></div></div>
+<div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="D.soldeManuel={comptePrincipal:+document.getElementById('m-cp').value,compteBis:+document.getElementById('m-cb').value,caisse:+document.getElementById('m-ca').value,date:document.getElementById('m-dt').value};save();window.closeModal()">Enregistrer</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
+// -- Seuil --
+window.updateSeuil=(v)=>{D.seuilAlerte=+v;save();};
+// -- Salaires --
+window.addSalaire=()=>{showModal(`<h3>Nouvel employé</h3><div class="frow"><div class="fgrp"><label>Nom</label><input id="m-sn"></div><div class="fgrp"><label>Poste</label><input id="m-sr"></div></div><div class="frow"><div class="fgrp"><label>Salaire net</label><input id="m-sm" type="number"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="D.charges.salaires.push({id:uid(),nom:document.getElementById('m-sn').value,role:document.getElementById('m-sr').value,net:+document.getElementById('m-sm').value});save();window.closeModal()">Ajouter</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
+window.editSalaire=(id)=>{const s=D.charges.salaires.find(x=>x.id===id);if(!s)return;showModal(`<h3>Modifier employé</h3><div class="frow"><div class="fgrp"><label>Nom</label><input id="m-sn" value="${s.nom}"></div><div class="fgrp"><label>Poste</label><input id="m-sr" value="${s.role}"></div></div><div class="frow"><div class="fgrp"><label>Salaire net</label><input id="m-sm" type="number" value="${s.net}"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="const x=D.charges.salaires.find(s=>s.id==='${id}');x.nom=document.getElementById('m-sn').value;x.role=document.getElementById('m-sr').value;x.net=+document.getElementById('m-sm').value;save();window.closeModal()">Enregistrer</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
+window.delSalaire=(id)=>{if(confirm('Supprimer cet employé ?')){D.charges.salaires=D.charges.salaires.filter(x=>x.id!==id);save();}};
+// -- Charges génériques --
+window.addCharge=(cat)=>{showModal(`<h3>Nouvelle charge</h3><div class="frow"><div class="fgrp"><label>Libellé</label><input id="m-cn"></div><div class="fgrp"><label>Montant</label><input id="m-cm" type="number"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="D.charges.${cat}.push({id:uid(),nom:document.getElementById('m-cn').value,montant:+document.getElementById('m-cm').value});save();window.closeModal()">Ajouter</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
+window.editCharge=(cat,id)=>{const x=D.charges[cat].find(c=>c.id===id);if(!x)return;showModal(`<h3>Modifier charge</h3><div class="frow"><div class="fgrp"><label>Libellé</label><input id="m-cn" value="${x.nom}"></div><div class="fgrp"><label>Montant</label><input id="m-cm" type="number" value="${x.montant}"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="const c=D.charges['${cat}'].find(c=>c.id==='${id}');c.nom=document.getElementById('m-cn').value;c.montant=+document.getElementById('m-cm').value;save();window.closeModal()">Enregistrer</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
+window.delCharge=(cat,id)=>{if(confirm('Supprimer ?')){D.charges[cat]=D.charges[cat].filter(x=>x.id!==id);save();}};
+// -- PEC --
+window.addPEC=()=>{const fList=D.dettes.map(d=>`<option value="${d.nom}">${d.nom}</option>`).join('');showModal(`<h3>Paiement en cours</h3><div class="frow"><div class="fgrp"><label>Fournisseur</label><select id="m-pf"><option value="">Sélectionner</option>${fList}<option value="__new__">+ Nouveau</option></select><input id="m-pfn" placeholder="Nom si nouveau" style="margin-top:4px;display:none"></div><div class="fgrp"><label>Montant</label><input id="m-pm" type="number"></div></div><div class="frow"><div class="fgrp"><label>Moyen</label><select id="m-py"><option>Chèque</option><option>Virement</option><option>Espèces</option><option>Effet</option></select></div><div class="fgrp"><label>Date</label><input id="m-pd" type="date" value="${new Date().toISOString().slice(0,10)}"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="window.savePEC()">Enregistrer</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);
+document.getElementById('m-pf').onchange=function(){document.getElementById('m-pfn').style.display=this.value==='__new__'?'block':'none';};};
+window.savePEC=()=>{
+let fournisseur=document.getElementById('m-pf').value;
+if(fournisseur==='__new__')fournisseur=document.getElementById('m-pfn').value;
+const montant=+document.getElementById('m-pm').value;
+const moyen=document.getElementById('m-py').value;
+const date=document.getElementById('m-pd').value;
+if(!fournisseur||!montant)return;
+D.paiementsEnCours.push({id:uid(),fournisseur,montant,moyen,date});
+// Impact auto sur dettes
+const dette=D.dettes.find(d=>d.nom===fournisseur);
+if(dette){if(!dette.paiements)dette.paiements=[];dette.paiements.push({date,montant,moyen});}
+save();window.closeModal();};
+window.delPEC=(id)=>{D.paiementsEnCours=D.paiementsEnCours.filter(x=>x.id!==id);save();};
+// -- Dettes --
+window.addDette=()=>{showModal(`<h3>Nouveau fournisseur</h3><div class="frow"><div class="fgrp"><label>Nom</label><input id="m-dn"></div><div class="fgrp"><label>Montant</label><input id="m-dm" type="number"></div></div><div class="frow"><div class="fgrp"><label>Statut</label><select id="m-ds"><option>Actif</option><option>Inactif</option></select></div><div class="fgrp"><label>Convention</label><input id="m-dc" value="Pas de conv."></div></div><div class="frow"><div class="fgrp"><label>Priorité</label><select id="m-dp"><option>URGENT</option><option>Actif</option><option>Historique</option><option>En négociation</option><option>Interne</option></select></div><div class="fgrp"><label>Plan</label><input id="m-dpl"></div></div><div class="frow"><div class="fgrp"><label>Date début</label><input id="m-dd" type="date"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="D.dettes.push({id:uid(),nom:document.getElementById('m-dn').value,montant:+document.getElementById('m-dm').value,statut:document.getElementById('m-ds').value,convention:document.getElementById('m-dc').value,priorite:document.getElementById('m-dp').value,plan:document.getElementById('m-dpl').value,debut:document.getElementById('m-dd').value,paiements:[]});save();window.closeModal()">Ajouter</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
+window.editDette=(id)=>{const x=D.dettes.find(d=>d.id===id);if(!x)return;showModal(`<h3>Modifier fournisseur</h3><div class="frow"><div class="fgrp"><label>Nom</label><input id="m-dn" value="${x.nom}"></div><div class="fgrp"><label>Montant</label><input id="m-dm" type="number" value="${x.montant}"></div></div><div class="frow"><div class="fgrp"><label>Statut</label><select id="m-ds"><option ${x.statut==='Actif'?'selected':''}>Actif</option><option ${x.statut==='Inactif'?'selected':''}>Inactif</option></select></div><div class="fgrp"><label>Convention</label><input id="m-dc" value="${x.convention}"></div></div><div class="frow"><div class="fgrp"><label>Priorité</label><select id="m-dp"><option ${x.priorite==='URGENT'?'selected':''}>URGENT</option><option ${x.priorite==='Actif'?'selected':''}>Actif</option><option ${x.priorite==='Historique'?'selected':''}>Historique</option><option ${x.priorite==='En négociation'?'selected':''}>En négociation</option><option ${x.priorite==='Interne'?'selected':''}>Interne</option></select></div><div class="fgrp"><label>Plan</label><input id="m-dpl" value="${x.plan}"></div></div><div class="frow"><div class="fgrp"><label>Date début</label><input id="m-dd" type="date" value="${x.debut}"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="const d=D.dettes.find(d=>d.id==='${id}');d.nom=document.getElementById('m-dn').value;d.montant=+document.getElementById('m-dm').value;d.statut=document.getElementById('m-ds').value;d.convention=document.getElementById('m-dc').value;d.priorite=document.getElementById('m-dp').value;d.plan=document.getElementById('m-dpl').value;d.debut=document.getElementById('m-dd').value;save();window.closeModal()">Enregistrer</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
+window.delDette=(id)=>{if(confirm('Supprimer ce fournisseur ?')){D.dettes=D.dettes.filter(x=>x.id!==id);save();}};
+// -- Créances --
+window.addCreanceClient=()=>{showModal(`<h3>Nouveau client</h3><div class="frow"><div class="fgrp"><label>Nom complet</label><input id="m-ccn"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="D.creances.push({id:uid(),client:document.getElementById('m-ccn').value,total:0,classeeSansSuite:false,factures:[]});save();window.closeModal()">Ajouter</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
+window.editCreanceClient=(id)=>{const c=D.creances.find(x=>x.id===id);if(!c)return;showModal(`<h3>Modifier client</h3><div class="frow"><div class="fgrp"><label>Nom complet</label><input id="m-ccn" value="${c.client}"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="D.creances.find(x=>x.id==='${id}').client=document.getElementById('m-ccn').value;save();window.closeModal()">Enregistrer</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
+window.classerSansSuite=(id)=>{if(confirm('Classer ce client sans suite ? Les montants seront exclus des calculs.')){const c=D.creances.find(x=>x.id===id);if(c)c.classeeSansSuite=true;save();}};
+window.reactiver=(id)=>{const c=D.creances.find(x=>x.id===id);if(c)c.classeeSansSuite=false;save();};
+window.addFacture=(cid)=>{showModal(`<h3>Nouvelle facture</h3><div class="frow"><div class="fgrp"><label>Réf.</label><input id="m-fr"></div><div class="fgrp"><label>Description</label><input id="m-fd"></div></div><div class="frow"><div class="fgrp"><label>Montant</label><input id="m-fm" type="number"></div><div class="fgrp"><label>Échéance</label><input id="m-fe" type="date"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="const c=D.creances.find(x=>x.id==='${cid}');c.factures.push({id:uid(),ref:document.getElementById('m-fr').value,desc:document.getElementById('m-fd').value,montant:+document.getElementById('m-fm').value,echeance:document.getElementById('m-fe').value});c.total=c.factures.reduce((s,f)=>s+f.montant,0);save();window.closeModal()">Ajouter</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
+window.editFacture=(cid,fid)=>{const c=D.creances.find(x=>x.id===cid);const f=c?.factures.find(x=>x.id===fid);if(!f)return;showModal(`<h3>Modifier facture</h3><div class="frow"><div class="fgrp"><label>Réf.</label><input id="m-fr" value="${f.ref}"></div><div class="fgrp"><label>Description</label><input id="m-fd" value="${f.desc}"></div></div><div class="frow"><div class="fgrp"><label>Montant</label><input id="m-fm" type="number" value="${f.montant}"></div><div class="fgrp"><label>Échéance</label><input id="m-fe" type="date" value="${f.echeance}"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="const c=D.creances.find(x=>x.id==='${cid}');const f=c.factures.find(x=>x.id==='${fid}');f.ref=document.getElementById('m-fr').value;f.desc=document.getElementById('m-fd').value;f.montant=+document.getElementById('m-fm').value;f.echeance=document.getElementById('m-fe').value;c.total=c.factures.reduce((s,f)=>s+f.montant,0);save();window.closeModal()">Enregistrer</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
+window.delFacture=(cid,fid)=>{if(confirm('Supprimer cette facture ?')){const c=D.creances.find(x=>x.id===cid);c.factures=c.factures.filter(f=>f.id!==fid);c.total=c.factures.reduce((s,f)=>s+f.montant,0);save();}};
+// -- Pipeline --
+window.addPipeline=()=>{showModal(`<h3>Nouveau devis</h3><div class="frow"><div class="fgrp"><label>Client</label><input id="m-pc"></div><div class="fgrp"><label>Projet</label><input id="m-pp"></div></div><div class="frow"><div class="fgrp"><label>Montant HT</label><input id="m-pm2" type="number"></div><div class="fgrp"><label>Probabilité %</label><input id="m-pb" type="number" value="50"></div></div><div class="frow"><div class="fgrp"><label>Statut</label><select id="m-ps"><option>En cours</option><option>Envoyé</option><option>Gagné</option><option>Perdu</option></select></div><div class="fgrp"><label>Date</label><input id="m-pdt" type="date"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="D.pipeline.push({id:uid(),client:document.getElementById('m-pc').value,projet:document.getElementById('m-pp').value,montant:+document.getElementById('m-pm2').value,proba:+document.getElementById('m-pb').value,statut:document.getElementById('m-ps').value,date:document.getElementById('m-pdt').value});save();window.closeModal()">Ajouter</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
+window.editPipeline=(id)=>{const p=D.pipeline.find(x=>x.id===id);if(!p)return;showModal(`<h3>Modifier devis</h3><div class="frow"><div class="fgrp"><label>Client</label><input id="m-pc" value="${p.client}"></div><div class="fgrp"><label>Projet</label><input id="m-pp" value="${p.projet}"></div></div><div class="frow"><div class="fgrp"><label>Montant HT</label><input id="m-pm2" type="number" value="${p.montant}"></div><div class="fgrp"><label>Probabilité %</label><input id="m-pb" type="number" value="${p.proba}"></div></div><div class="frow"><div class="fgrp"><label>Statut</label><select id="m-ps"><option ${p.statut==='En cours'?'selected':''}>En cours</option><option ${p.statut==='Envoyé'?'selected':''}>Envoyé</option><option ${p.statut==='Gagné'?'selected':''}>Gagné</option><option ${p.statut==='Perdu'?'selected':''}>Perdu</option></select></div><div class="fgrp"><label>Date</label><input id="m-pdt" type="date" value="${p.date}"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="const p=D.pipeline.find(x=>x.id==='${id}');p.client=document.getElementById('m-pc').value;p.projet=document.getElementById('m-pp').value;p.montant=+document.getElementById('m-pm2').value;p.proba=+document.getElementById('m-pb').value;p.statut=document.getElementById('m-ps').value;p.date=document.getElementById('m-pdt').value;save();window.closeModal()">Enregistrer</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
+window.delPipeline=(id)=>{D.pipeline=D.pipeline.filter(x=>x.id!==id);save();};
+// -- Calendrier --
+window.addCal=()=>{showModal(`<h3>Nouveau rappel</h3><div class="frow"><div class="fgrp"><label>Date</label><input id="m-cd" type="date"></div><div class="fgrp"><label>Type</label><select id="m-ct"><option>Fiscal</option><option>Fournisseur</option><option>Crédit</option><option>Client</option><option>Autre</option></select></div></div><div class="frow"><div class="fgrp"><label>Description</label><input id="m-cc"></div><div class="fgrp"><label>Urgence</label><select id="m-cu"><option>Normale</option><option>URGENT</option></select></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="D.calendrier.push({id:uid(),date:document.getElementById('m-cd').value,type:document.getElementById('m-ct').value,desc:document.getElementById('m-cc').value,urgence:document.getElementById('m-cu').value});save();window.closeModal()">Ajouter</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
+window.delCal=(id)=>{D.calendrier=D.calendrier.filter(x=>x.id!==id);save();};
+// -- Todos --
+window.toggleTodo=(id)=>{const t=D.todoAlerts.find(x=>x.id===id);if(t)t.done=!t.done;save();};
+window.delTodo=(id)=>{D.todoAlerts=D.todoAlerts.filter(x=>x.id!==id);save();};
+window.addTodoPrompt=()=>{showModal(`<h3>Nouvelle action</h3><div class="frow"><div class="fgrp"><label>Description</label><input id="m-td"></div></div><div style="display:flex;gap:6px;margin-top:12px"><button class="btn btn-p" onclick="D.todoAlerts.push({id:uid(),desc:document.getElementById('m-td').value,done:false});save();window.closeModal()">Ajouter</button><button class="btn btn-s" onclick="window.closeModal()">Annuler</button></div>`);};
+// -- Notifications --
+window.reqNotif=()=>{if('Notification'in window)Notification.requestPermission().then(p=>{if(p==='granted')alert('Notifications activées !');});};
+
+// ===== PDF PARSER (Société Générale Maroc) =====
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+window.handlePDF=async(files)=>{
+if(!files||!files.length)return;
+const res=document.getElementById('pdf-result');
+res.innerHTML='<p>⏳ Traitement en cours...</p>';
+let allOps=[];let soldePrecedent=null;let soldeFinal=null;let periode='';
+for(const file of files){
+try{
+const buf=await file.arrayBuffer();
+const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+let fullText='';
+for(let i=1;i<=pdf.numPages;i++){
+const page=await pdf.getPage(i);
+const tc=await page.getTextContent();
+fullText+=tc.items.map(x=>x.str).join(' ')+'\n';
+}
+// Extract période
+const perMatch=fullText.match(/Relevé du (\d{2}\/\d{2}\/\d{2}) au (\d{2}\/\d{2}\/\d{2})/);
+if(perMatch)periode=perMatch[0];
+// Extract solde précédent
+const spMatch=fullText.match(/Solde précédent[^:]*:\s*([\d\s.,]+)\s*CR/);
+if(spMatch&&!soldePrecedent)soldePrecedent=parseMontant(spMatch[1]);
+// Extract solde final
+const sfMatch=fullText.match(/Solde au \d{2}\/\d{2}\/\d{2}[^C]*?([\d\s.,]+)\s*CR/);
+if(sfMatch)soldeFinal=parseMontant(sfMatch[1]);
+// Extract operations - pattern: DD/MM DD/MM LIBELLE MONTANT
+const lines=fullText.split('\n');
+const opRegex=/(\d{2}\/\d{2})\s+(\d{2}\/\d{2})\s+(.+?)\s+([\d\s.]+,\d{2})\s*$/;
+for(const line of lines){
+// Try to match debit or credit lines
+const parts=line.trim();
+if(!parts)continue;
+// Match date patterns at start
+const dateMatch=parts.match(/^(\d{2}\/\d{2})\s+(\d{2}\/\d{2})\s+(.+)/);
+if(!dateMatch)continue;
+const dateOp=dateMatch[1];
+const dateVal=dateMatch[2];
+let rest=dateMatch[3];
+// Find amounts at end - could be in debit or credit column
+const amtMatches=[...rest.matchAll(/([\d.]+,\d{2})/g)];
+if(!amtMatches.length)continue;
+const lastAmt=amtMatches[amtMatches.length-1];
+const montant=parseMontant(lastAmt[0]);
+const libelle=rest.slice(0,lastAmt.index).trim();
+// Determine if debit or credit based on keywords
+const isCredit=libelle.match(/RECEPTION|ENCAISSEMENT|REMISE/i);
+allOps.push({date:dateOp,libelle:libelle.slice(0,80),montant,type:isCredit?'credit':'debit'});
+}
+}catch(e){console.error('PDF parse error:',e);}
+}
+// Display results
+if(allOps.length){
+const totalDebit=allOps.filter(x=>x.type==='debit').reduce((s,x)=>s+x.montant,0);
+const totalCredit=allOps.filter(x=>x.type==='credit').reduce((s,x)=>s+x.montant,0);
+let html=`<div class="alrt alrt-i"><b>${periode}</b> — ${allOps.length} opérations détectées | Débits: ${fmtK(totalDebit)} | Crédits: ${fmtK(totalCredit)}</div>`;
+if(soldeFinal){html+=`<div class="alrt alrt-w">Solde final relevé: <b>${fmtK(soldeFinal)}</b> — <button class="btn btn-sm btn-p" onclick="D.soldeManuel.comptePrincipal=${soldeFinal};save()">Appliquer au solde principal</button></div>`;}
+html+=`<div class="tw" style="max-height:300px;overflow-y:auto"><table><thead><tr><th>Date</th><th>Libellé</th><th style="text-align:right">Débit</th><th style="text-align:right">Crédit</th></tr></thead><tbody>`;
+allOps.forEach(o=>{html+=`<tr><td>${o.date}</td><td style="font-size:11px">${o.libelle}</td><td style="text-align:right;color:var(--dgr)">${o.type==='debit'?fmtK(o.montant):''}</td><td style="text-align:right;color:var(--grn)">${o.type==='credit'?fmtK(o.montant):''}</td></tr>`;});
+html+=`</tbody></table></div>`;
+// Store in data
+if(!D.releves)D.releves=[];
+D.releves.push({date:new Date().toISOString(),periode,operations:allOps,soldeF:soldeFinal});
+save();
+res.innerHTML=html;
+}else{res.innerHTML='<div class="alrt alrt-d">Aucune opération détectée. Vérifiez le format du PDF.</div>';}
 };
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-window.db = db;
-window.fbDoc = doc;
-window.fbGetDoc = getDoc;
-window.fbSetDoc = setDoc;
-window.fbOnSnapshot = onSnapshot;
+function parseMontant(str){return parseFloat(str.replace(/\s/g,'').replace(/\./g,'').replace(',','.'));}
 
-// ========== AUTH ==========
-const PASS = 'bouchrasamideclic2026';
-function doLogin() {
-  const v = document.getElementById('pwd-input').value;
-  if (v === PASS) {
-    sessionStorage.setItem('declic-auth', '1');
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    initApp();
-  } else {
-    document.getElementById('login-error').style.display = 'block';
-  }
+// ===== FIREBASE =====
+async function save(){
+try{const ref=doc(db,'dashboard','main');await setDoc(ref,JSON.parse(JSON.stringify(D)));setSyncStatus(true);}
+catch(e){console.error('Save:',e);setSyncStatus(false);}
 }
-function doLogout() {
-  sessionStorage.removeItem('declic-auth');
-  location.reload();
+function setSyncStatus(ok){document.getElementById('sdot').className='sync-d'+(ok?'':' off');document.getElementById('slab').textContent=ok?'Connecté':'Hors ligne';}
+async function initApp(){
+const ref=doc(db,'dashboard','main');
+try{const snap=await getDoc(ref);if(!snap.exists()){D=seed();await setDoc(ref,D);}else{D=JSON.parse(JSON.stringify(snap.data()));
+// Merge missing fields
+const s=seed();if(!D.paiementsEnCours)D.paiementsEnCours=[];if(!D.todoAlerts)D.todoAlerts=s.todoAlerts;if(!D.releves)D.releves=[];if(!D.seuilAlerte)D.seuilAlerte=100000;if(!D.soldeManuel)D.soldeManuel=s.soldeManuel;if(!D.charges.admin)D.charges={...s.charges,...D.charges};if(!D.charges.logistique)D.charges.logistique=s.charges.logistique;
+// Ensure IDs
+D.charges.salaires.forEach((x,i)=>{if(!x.id)x.id='s'+i;});D.dettes.forEach((x,i)=>{if(!x.id)x.id='d'+i;if(!x.paiements)x.paiements=[];});D.creances.forEach((x,i)=>{if(!x.id)x.id='cr'+i;if(x.classeeSansSuite===undefined)x.classeeSansSuite=false;x.factures.forEach((f,j)=>{if(!f.id)f.id='f'+i+'_'+j;});});
+}setSyncStatus(true);}
+catch(e){console.error('Init:',e);setSyncStatus(false);D=seed();}
+renderAll();
+onSnapshot(ref,snap=>{if(snap.exists()){const newD=JSON.parse(JSON.stringify(snap.data()));D=newD;setSyncStatus(true);renderAll();}},err=>{console.error('Snap:',err);setSyncStatus(false);});
 }
-function checkAuth() {
-  if (sessionStorage.getItem('declic-auth') === '1') {
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    initApp();
-  }
-}
-
-// ========== THEME ==========
-function toggleTheme() {
-  document.body.classList.toggle('dark');
-  const btn = document.querySelector('.theme-toggle');
-  btn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
-  localStorage.setItem('declic-theme', document.body.classList.contains('dark') ? 'dark' : 'light');
-  // Redraw charts
-  if (window.chartsReady) renderCharts();
-}
-function loadTheme() {
-  if (localStorage.getItem('declic-theme') === 'dark') {
-    document.body.classList.add('dark');
-    document.querySelector('.theme-toggle').textContent = '☀️';
-  }
-}
-loadTheme();
-
-// ========== NAVIGATION ==========
-function showModule(id, btn) {
-  document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
-  document.getElementById('mod-' + id).classList.add('active');
-  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-}
-
-// ========== MODALS ==========
-function closeModal(id) { document.getElementById(id).classList.remove('show'); }
-function showAddPipeline() { document.getElementById('modal-pipeline').classList.add('show'); }
-function showAddRappel() { document.getElementById('modal-rappel').classList.add('show'); }
-
-// ========== FORMAT ==========
-function fmt(n) { return new Intl.NumberFormat('fr-FR').format(Math.round(n)); }
-function fmtK(n) { return fmt(n) + ' MAD'; }
-
-// ========== SEED DATA ==========
-function getSeedData() {
-  return {
-    tresorerie: {
-      comptePrincipal: 169357,
-      compteBis: 340,
-      caisse: 2945,
-      historique: {
-        '03/2025':392940,'04/2025':53512,'05/2025':364266,'06/2025':266776,
-        '07/2025':247661,'08/2025':206155,'09/2025':15105,'10/2025':281918,
-        '11/2025':484837,'12/2025':428475,'01/2026':257646,'02/2026':44778,'03/2026':169697
-      }
-    },
-    charges: {
-      salaires: [
-        {nom:'Boukhrissi Omar',role:'associé',net:20420},
-        {nom:'Zoui Fayçal',role:'associé',net:25000},
-        {nom:'Ben Abdel Hamid Sami',role:'associé/gérant',net:20420},
-        {nom:'Ben Abdel Hamid Yassine',role:'associé/digital',net:10362},
-        {nom:'Boutsis Bouchra',role:'admin',net:9694},
-        {nom:'Ghoti Hassan',role:'production',net:14803},
-        {nom:'El Ouafi Redouane',role:'terrain',net:5142},
-        {nom:'Saihi Zhor',role:'support',net:4018},
-        {nom:'Benabdelhamid Kamil',role:'média',net:13339},
-        {nom:'Mesbah Abdellah',role:'terrain',net:12699},
-        {nom:'Markhouss Ayoub',role:'activation',net:7000},
-        {nom:'Bendaher Fouad',role:'logistique',net:5041},
-        {nom:'Lkabouse Fayçal',role:'production',net:6334},
-        {nom:'Ammar Zain',role:'digital',net:13000},
-        {nom:'Dyab Mohammed',role:'création',net:9000},
-        {nom:'Dardouz Youssef',role:'production',net:6500}
-      ],
-      fixes: {cnss:43000,ir:24000,chargesFixes:20000,eqdom:4013,sofac:8129,rci:3700,saham:12700}
-    },
-    dettes: [
-      {nom:'Les Idées en Fête',montant:631728,statut:'Actif',convention:'Pas de conv.',priorite:'URGENT',plan:'Min 25K/mois',debut:'Mai 2026'},
-      {nom:'Gloria',montant:306400,statut:'Actif',convention:'Pas de conv.',priorite:'URGENT',plan:'Min 20K/mois',debut:'Mai 2026'},
-      {nom:'Manycon (Hicham)',montant:191780,statut:'Inactif',convention:'Conv. signée',priorite:'Historique',plan:'—',debut:'Juillet 2026'},
-      {nom:'Fc Media',montant:185208,statut:'Inactif',convention:'Pas de conv.',priorite:'En négociation',plan:'—',debut:'Après rapprochement'},
-      {nom:'Néo Billboard',montant:175320,statut:'Inactif',convention:'Pas de conv.',priorite:'Historique',plan:'—',debut:'Juillet 2026'},
-      {nom:'Traiteur Baya',montant:117700,statut:'Actif',convention:'Pas de conv.',priorite:'Actif',plan:'Min 15K/mois',debut:'Juin 2026'},
-      {nom:'INDUS pôle Technique',montant:110995,statut:'Inactif',convention:'Conv. signée',priorite:'Historique',plan:'—',debut:'Juillet 2026'},
-      {nom:'Optimus',montant:100200,statut:'Actif',convention:'Conv. en cours',priorite:'URGENT',plan:'35K initial + min 20K/mois',debut:'Avril 2026'},
-      {nom:'Fly Drones',montant:84000,statut:'Inactif',convention:'Conv. signée',priorite:'Historique',plan:'—',debut:'Juillet 2026'},
-      {nom:'Yassine Mourabit',montant:80000,statut:'Inactif',convention:'Pas de conv.',priorite:'Interne',plan:'—',debut:'À discuter'},
-      {nom:'Telquel',montant:61200,statut:'Inactif',convention:'Conv. signée',priorite:'Historique',plan:'—',debut:'Juillet 2026'},
-      {nom:'Loditec',montant:50960,statut:'Inactif',convention:'Pas de conv.',priorite:'Historique',plan:'—',debut:'Juillet 2026'},
-      {nom:'Atoutloc',montant:49800,statut:'Inactif',convention:'Pas de conv.',priorite:'Historique',plan:'—',debut:'Juillet 2026'},
-      {nom:'Adil Lotfi',montant:48000,statut:'Inactif',convention:'Pas de conv.',priorite:'Historique',plan:'—',debut:'Juillet 2026'},
-      {nom:'EKO6TM',montant:42000,statut:'Inactif',convention:'Pas de conv.',priorite:'Historique',plan:'—',debut:'Juillet 2026'},
-      {nom:'Light Digital',montant:41040,statut:'Inactif',convention:'Pas de conv.',priorite:'Historique',plan:'—',debut:'Juillet 2026'},
-      {nom:'Luxe Radio',montant:40800,statut:'Inactif',convention:'Conv. signée',priorite:'Historique',plan:'—',debut:'Juillet 2026'},
-      {nom:'Imperium Media',montant:34800,statut:'Inactif',convention:'Pas de conv.',priorite:'Historique',plan:'—',debut:'Juillet 2026'},
-      {nom:'Flex Covers',montant:32400,statut:'Inactif',convention:'Pas de conv.',priorite:'Historique',plan:'—',debut:'Juillet 2026'}
-    ],
-    dettesFiscales: {tva:50000, is:45000},
-    creances: {
-      smt: {client:'SMT',total:280992,statut:'En attente',factures:[
-        {ref:'2026/0005',desc:'Dima Fiesta',montant:7392,echeance:'Avril 2026'},
-        {ref:'2026/0015',desc:'Mini log',montant:66000,echeance:'Mai 2026'},
-        {ref:'2026/0016',desc:'Budget Media',montant:44280,echeance:'Mai 2026'},
-        {ref:'2026/0017',desc:'Déclinaisons',montant:10320,echeance:'Mai 2026'},
-        {ref:'2026/0018',desc:'Forfait Création Graphique',montant:54000,echeance:'Mai 2026'},
-        {ref:'2026/0019',desc:'Collaboration Dynamart',montant:96000,echeance:'Mai 2026'},
-        {ref:'2026/0028',desc:'Adaptation Visuel Street Art',montant:3000,echeance:'Mai 2026'}
-      ]},
-      cac: {client:'CAC',total:210439,statut:'En attente',factures:[
-        {ref:'2026/0010',desc:'—',montant:3168,echeance:'Avril 2026'},
-        {ref:'2026/0011',desc:'—',montant:3802,echeance:'Avril 2026'},
-        {ref:'2026/0012',desc:'—',montant:17107,echeance:'Avril 2026'},
-        {ref:'2026/0020',desc:'Expo 1-54 Art Fair',montant:41580,echeance:'Avril 2026'},
-        {ref:'2026/0021',desc:'—',montant:9042,echeance:'Avril 2026'},
-        {ref:'2026/0022',desc:'—',montant:7814,echeance:'Avril 2026'},
-        {ref:'2026/0024',desc:'—',montant:115368,echeance:'Avril 2026'},
-        {ref:'2026/0025',desc:'—',montant:1998,echeance:'Mai 2026'},
-        {ref:'2026/0026',desc:'—',montant:26400,echeance:'Mai 2026'},
-        {ref:'2026/0029',desc:'—',montant:3300,echeance:'Mai 2026'}
-      ]},
-      volvo: {client:'Volvo (Scandinavian)',total:66306,statut:'EN RETARD',factures:[
-        {ref:'2025/0267',desc:'—',montant:66306,echeance:'Janvier 2026'}
-      ]},
-      yango: {client:'Yango',total:35799,statut:'En attente',factures:[
-        {ref:'PE Nov',desc:'UGC',montant:4140,echeance:'Ancien'},
-        {ref:'2026/0014',desc:'Yango UGC Fév',montant:1449,echeance:'Avril 2026'},
-        {ref:'2026/0030',desc:'Yango FEES Mars',montant:24000,echeance:'Avril 2026'},
-        {ref:'2026/0031',desc:'Yango UGC Mars',montant:6210,echeance:'Avril 2026'}
-      ]},
-      anciennes: {client:'Créances anciennes (prob. faible)',total:156233,statut:'Faible',factures:[
-        {ref:'—',desc:'Eko6tem',montant:60000,echeance:'—'},
-        {ref:'—',desc:'RA Motor Sud-Agadir',montant:39120,echeance:'—'},
-        {ref:'—',desc:'K.G.K Shoes',montant:25920,echeance:'—'},
-        {ref:'—',desc:'Most Food',montant:20000,echeance:'—'},
-        {ref:'—',desc:'G4S',montant:9744,echeance:'—'},
-        {ref:'—',desc:'Universal Music',montant:1449,echeance:'—'}
-      ]}
-    },
-    caClient2025: [
-      {client:'SBM',montant:5448115,pct:39.8},
-      {client:'CAC',montant:3843751,pct:28.0},
-      {client:'Stellantis',montant:1669029,pct:12.2},
-      {client:'LK Automotive',montant:1077456,pct:7.9},
-      {client:'Scandinavian Auto',montant:526695,pct:3.8},
-      {client:'Yango',montant:364185,pct:2.7},
-      {client:'Universal Music',montant:232564,pct:1.7},
-      {client:'Autres',montant:545400,pct:4.0}
-    ],
-    resultats: {
-      ca: [9120485,14621356,13683716],
-      margeBrute: [2164387,3953919,4196437],
-      tauxMarge: [23.7,27.0,30.7],
-      chargesPersonnel: [1086982,2740642,3656479],
-      ebe: [626574,926963,266678],
-      resultatNet: [413932,689166,246799],
-      annees: ['2023','2024','2025']
-    },
-    pipeline: [
-      {id:'pip1',client:'DWTC/Phillip',projet:'GITEX Africa SM Production',montant:165000,proba:80,statut:'En cours',date:'2026-03-20'},
-      {id:'pip2',client:'Kaoun International',projet:'GITEX SM Management',montant:120000,proba:60,statut:'En cours',date:'2026-03-25'},
-      {id:'pip3',client:'Sisal Loterie Maroc',projet:'AO Lots 1 & 2',montant:840000,proba:40,statut:'Envoyé',date:'2026-03-15'},
-      {id:'pip4',client:'Alfa Romeo / Passage Fitness',projet:'Co-branding Partnership',montant:85000,proba:50,statut:'En cours',date:'2026-03-22'},
-      {id:'pip5',client:'Stellantis Morocco',projet:'Jeep Compass Launch (3 events)',montant:950000,proba:35,statut:'En cours',date:'2026-03-10'}
-    ],
-    calendrier: [
-      {id:'cal1',date:'2026-04-01',type:'Fiscal',desc:'Déclaration délais paiement 2025 (DGI/SIMPL)',urgence:'URGENT'},
-      {id:'cal2',date:'2026-04-14',type:'Crédit',desc:'Échéances crédits mensuels (Eqdom+Sofac+RCI+Saham = 28 542 MAD)',urgence:'Normale'},
-      {id:'cal3',date:'2026-04-15',type:'Fiscal',desc:'CNSS (~43K) + IR (~24K)',urgence:'Normale'},
-      {id:'cal4',date:'2026-04-30',type:'Fournisseur',desc:'1er versement Optimus (35K)',urgence:'URGENT'},
-      {id:'cal5',date:'2026-04-30',type:'Fiscal',desc:'Déclaration trimestrielle T1 2026',urgence:'URGENT'},
-      {id:'cal6',date:'2026-05-01',type:'Fournisseur',desc:'1er versement Les Idées en Fête (25K)',urgence:'URGENT'},
-      {id:'cal7',date:'2026-05-01',type:'Fournisseur',desc:'1er versement Gloria (20K)',urgence:'URGENT'},
-      {id:'cal8',date:'2026-05-14',type:'Crédit',desc:'Échéances crédits mai (28 542 MAD)',urgence:'Normale'},
-      {id:'cal9',date:'2026-06-01',type:'Fournisseur',desc:'1er versement Traiteur Baya (15K)',urgence:'Normale'}
-    ]
-  };
-}
-
-// ========== STATE ==========
-window.currentData = null;
-window.chartsReady = false;
-window.chartInstances = {};
-
-// ========== INIT ==========
-async function initApp() {
-  const docRef = window.fbDoc(db, 'dashboard', 'main');
-  // Check if data exists
-  try {
-    const snap = await window.fbGetDoc(docRef);
-    if (!snap.exists()) {
-      // Seed
-      const seed = getSeedData();
-      await window.fbSetDoc(docRef, seed);
-      window.currentData = JSON.parse(JSON.stringify(seed));
-    } else {
-      window.currentData = JSON.parse(JSON.stringify(snap.data()));
-    }
-    setSyncStatus(true);
-  } catch(e) {
-    console.error('Firebase error:', e);
-    setSyncStatus(false);
-    // Fallback to seed
-    window.currentData = JSON.parse(JSON.stringify(getSeedData()));
-  }
-  renderAll();
-  // Listen for realtime updates
-  window.fbOnSnapshot(docRef, snap => {
-    if (snap.exists()) {
-      window.currentData = JSON.parse(JSON.stringify(snap.data()));
-      setSyncStatus(true);
-      renderAll();
-    }
-  }, err => {
-    console.error('Snapshot error:', err);
-    setSyncStatus(false);
-  });
-  // Check calendar notifications
-  checkNotifications();
-}
-
-function setSyncStatus(ok) {
-  const dot = document.getElementById('sync-dot');
-  const label = document.getElementById('sync-label');
-  if (ok) { dot.className='sync-dot'; label.textContent='Connecté'; }
-  else { dot.className='sync-dot off'; label.textContent='Hors ligne'; }
-}
-
-// ========== RENDER ALL ==========
-function renderAll() {
-  if (!window.currentData) return;
-  renderOverview();
-  renderTresorerie();
-  renderDettes();
-  renderCreances();
-  renderPipeline();
-  renderCalendrier();
-  renderCharts();
-}
-
-// ========== OVERVIEW ==========
-function renderOverview() {
-  const d = window.currentData;
-  const t = d.tresorerie;
-  const solde = t.comptePrincipal + t.compteBis + t.caisse;
-  const totalDettes = d.dettes.reduce((s,x) => s+x.montant, 0) + d.dettesFiscales.tva + d.dettesFiscales.is;
-  const totalCharges = d.charges.salaires.reduce((s,x) => s+x.net, 0) + Object.values(d.charges.fixes).reduce((s,v) => s+v, 0);
-  const burnRate = totalCharges;
-  const joursSurvie = Math.floor(solde / (burnRate / 30));
-  const crKeys = Object.keys(d.creances);
-  const totalCreances = crKeys.reduce((s,k) => s + d.creances[k].total, 0);
-
-  // Alerts
-  let alerts = '';
-  if (joursSurvie < 30) alerts += '<div class="alert-box alert-danger">⚠️ <strong>ALERTE CRITIQUE</strong> — Moins de 30 jours de trésorerie au rythme actuel ('+joursSurvie+' jours)</div>';
-  const urgents = d.dettes.filter(x => x.priorite === 'URGENT');
-  if (urgents.length) alerts += '<div class="alert-box">🚨 <strong>'+urgents.length+' fournisseurs URGENT</strong> — '+urgents.map(x=>x.nom).join(', ')+'</div>';
-  if (d.creances.volvo && d.creances.volvo.statut === 'EN RETARD') alerts += '<div class="alert-box alert-danger">⏰ <strong>Volvo EN RETARD</strong> — '+fmtK(d.creances.volvo.total)+' (échéance jan. 2026)</div>';
-  document.getElementById('overview-alerts').innerHTML = alerts;
-
-  document.getElementById('overview-cards').innerHTML = `
-    <div class="card"><div class="card-label">Solde total</div><div class="card-value ${solde<100000?'red':'green'}">${fmtK(solde)}</div><div class="card-sub">Principal: ${fmtK(t.comptePrincipal)}</div></div>
-    <div class="card"><div class="card-label">Burn rate mensuel</div><div class="card-value red">${fmtK(burnRate)}</div><div class="card-sub">${d.charges.salaires.length} salariés + fixes</div></div>
-    <div class="card"><div class="card-label">Jours de survie</div><div class="card-value ${joursSurvie<30?'red':joursSurvie<60?'orange':'green'}">${joursSurvie} j</div><div class="card-sub">Au rythme actuel</div></div>
-    <div class="card"><div class="card-label">Dettes fournisseurs</div><div class="card-value red">${fmtK(totalDettes)}</div><div class="card-sub">Dont fiscal: ${fmtK(d.dettesFiscales.tva+d.dettesFiscales.is)}</div></div>
-    <div class="card"><div class="card-label">Créances totales</div><div class="card-value blue">${fmtK(totalCreances)}</div><div class="card-sub">${crKeys.length} clients</div></div>
-    <div class="card"><div class="card-label">Taux marge 2025</div><div class="card-value green">${d.resultats.tauxMarge[2]}%</div><div class="card-sub">vs ${d.resultats.tauxMarge[1]}% en 2024</div></div>
-  `;
-}
-
-// ========== TRÉSORERIE ==========
-function renderTresorerie() {
-  const d = window.currentData;
-  const t = d.tresorerie;
-  const solde = t.comptePrincipal + t.compteBis + t.caisse;
-  const totalSalaires = d.charges.salaires.reduce((s,x) => s+x.net, 0);
-  const f = d.charges.fixes;
-  const totalFixes = Object.values(f).reduce((s,v) => s+v, 0);
-  const totalCharges = totalSalaires + totalFixes;
-
-  document.getElementById('treso-cards').innerHTML = `
-    <div class="card"><div class="card-label">Compte principal</div><div class="card-value">${fmtK(t.comptePrincipal)}</div></div>
-    <div class="card"><div class="card-label">Compte BIS</div><div class="card-value">${fmtK(t.compteBis)}</div></div>
-    <div class="card"><div class="card-label">Caisse</div><div class="card-value">${fmtK(t.caisse)}</div></div>
-    <div class="card"><div class="card-label">Solde total</div><div class="card-value ${solde<100000?'red':'green'}">${fmtK(solde)}</div></div>
-    <div class="card"><div class="card-label">Total salaires nets</div><div class="card-value">${fmtK(totalSalaires)}</div><div class="card-sub">${d.charges.salaires.length} personnes</div></div>
-    <div class="card"><div class="card-label">Total charges mensuelles</div><div class="card-value red">${fmtK(totalCharges)}</div></div>
-  `;
-
-  // Charges table
-  let rows = d.charges.salaires.map(s => `<tr><td>${s.nom}</td><td>${s.role}</td><td style="text-align:right;font-weight:600">${fmtK(s.net)}</td></tr>`).join('');
-  rows += `<tr style="font-weight:700;border-top:2px solid var(--red)"><td colspan="2">Total salaires nets</td><td style="text-align:right">${fmtK(totalSalaires)}</td></tr>`;
-  rows += `<tr><td colspan="2">CNSS</td><td style="text-align:right">${fmtK(f.cnss)}</td></tr>`;
-  rows += `<tr><td colspan="2">IR</td><td style="text-align:right">${fmtK(f.ir)}</td></tr>`;
-  rows += `<tr><td colspan="2">Charges fixes (loyer, abos)</td><td style="text-align:right">${fmtK(f.chargesFixes)}</td></tr>`;
-  rows += `<tr><td colspan="2">Crédit Eqdom (fin 2027)</td><td style="text-align:right">${fmtK(f.eqdom)}</td></tr>`;
-  rows += `<tr><td colspan="2">Crédit Sofac (fin 2027)</td><td style="text-align:right">${fmtK(f.sofac)}</td></tr>`;
-  rows += `<tr><td colspan="2">Crédit RCI (fin 2030)</td><td style="text-align:right">${fmtK(f.rci)}</td></tr>`;
-  rows += `<tr><td colspan="2">Crédit Saham (fin 2028)</td><td style="text-align:right">${fmtK(f.saham)}</td></tr>`;
-  rows += `<tr style="font-weight:700;border-top:2px solid var(--red)"><td colspan="2">TOTAL MENSUEL</td><td style="text-align:right;color:var(--danger)">${fmtK(totalCharges)}</td></tr>`;
-
-  document.getElementById('treso-charges-table').innerHTML = `<table><thead><tr><th>Nom</th><th>Poste</th><th style="text-align:right">Net (MAD)</th></tr></thead><tbody>${rows}</tbody></table>`;
-}
-
-// ========== DETTES ==========
-function renderDettes() {
-  const d = window.currentData;
-  const total = d.dettes.reduce((s,x) => s+x.montant, 0);
-  const actifs = d.dettes.filter(x => x.statut === 'Actif');
-  const totalActifs = actifs.reduce((s,x) => s+x.montant, 0);
-  const urgents = d.dettes.filter(x => x.priorite === 'URGENT');
-
-  document.getElementById('dettes-summary').innerHTML = `
-    <div class="card"><div class="card-label">Total dettes fournisseurs</div><div class="card-value red">${fmtK(total)}</div></div>
-    <div class="card"><div class="card-label">Fournisseurs actifs</div><div class="card-value orange">${fmtK(totalActifs)}</div><div class="card-sub">${actifs.length} fournisseurs</div></div>
-    <div class="card"><div class="card-label">Cas urgents</div><div class="card-value red">${urgents.length}</div></div>
-    <div class="card"><div class="card-label">Dettes fiscales</div><div class="card-value red">${fmtK(d.dettesFiscales.tva + d.dettesFiscales.is)}</div><div class="card-sub">TVA: ${fmtK(d.dettesFiscales.tva)} | IS: ${fmtK(d.dettesFiscales.is)}</div></div>
-  `;
-
-  const pTag = p => {
-    if (p === 'URGENT') return '<span class="tag tag-urgent">URGENT</span>';
-    if (p === 'Actif') return '<span class="tag tag-actif">Actif</span>';
-    return '<span class="tag tag-inactif">'+p+'</span>';
-  };
-  const sTag = s => s === 'Actif' ? '<span class="tag tag-actif">Actif</span>' : '<span class="tag tag-inactif">Inactif</span>';
-
-  let rows = d.dettes.map(x => `<tr>
-    <td style="font-weight:600">${x.nom}</td>
-    <td style="text-align:right;font-weight:600">${fmtK(x.montant)}</td>
-    <td>${sTag(x.statut)}</td>
-    <td>${x.convention}</td>
-    <td>${pTag(x.priorite)}</td>
-    <td>${x.plan}</td>
-    <td>${x.debut}</td>
-  </tr>`).join('');
-
-  document.getElementById('dettes-table').innerHTML = `<table><thead><tr><th>Fournisseur</th><th style="text-align:right">Montant</th><th>Statut</th><th>Convention</th><th>Priorité</th><th>Plan</th><th>Début</th></tr></thead><tbody>${rows}</tbody></table>`;
-}
-
-// ========== CRÉANCES ==========
-function renderCreances() {
-  const d = window.currentData;
-  const keys = Object.keys(d.creances);
-  const total = keys.reduce((s,k) => s + d.creances[k].total, 0);
-  const retard = keys.filter(k => d.creances[k].statut === 'EN RETARD');
-  const totalRetard = retard.reduce((s,k) => s + d.creances[k].total, 0);
-  const faible = keys.filter(k => d.creances[k].statut === 'Faible');
-  const totalFaible = faible.reduce((s,k) => s + d.creances[k].total, 0);
-
-  document.getElementById('creances-summary').innerHTML = `
-    <div class="card"><div class="card-label">Créances totales</div><div class="card-value blue">${fmtK(total)}</div></div>
-    <div class="card"><div class="card-label">Recouvrable (fiable)</div><div class="card-value green">${fmtK(total - totalFaible)}</div></div>
-    <div class="card"><div class="card-label">En retard</div><div class="card-value red">${fmtK(totalRetard)}</div></div>
-    <div class="card"><div class="card-label">Prob. faible</div><div class="card-value orange">${fmtK(totalFaible)}</div></div>
-  `;
-
-  const stTag = s => {
-    if (s === 'EN RETARD') return '<span class="tag tag-retard">EN RETARD</span>';
-    if (s === 'Faible') return '<span class="tag tag-inactif">Prob. faible</span>';
-    return '<span class="tag tag-attente">En attente</span>';
-  };
-
-  let html = '';
-  keys.forEach(k => {
-    const c = d.creances[k];
-    html += `<div class="card" style="margin-bottom:16px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div><strong>${c.client}</strong> ${stTag(c.statut)}</div>
-        <div style="font-weight:700;font-size:18px">${fmtK(c.total)}</div>
-      </div>
-      <table><thead><tr><th>Réf.</th><th>Description</th><th style="text-align:right">Montant</th><th>Échéance</th></tr></thead><tbody>
-      ${c.factures.map(f => `<tr><td>${f.ref}</td><td>${f.desc}</td><td style="text-align:right">${fmtK(f.montant)}</td><td>${f.echeance}</td></tr>`).join('')}
-      </tbody></table>
-    </div>`;
-  });
-  document.getElementById('creances-sections').innerHTML = html;
-}
-
-// ========== PIPELINE ==========
-function renderPipeline() {
-  const d = window.currentData;
-  if (!d.pipeline) d.pipeline = [];
-  const total = d.pipeline.reduce((s,x) => s+x.montant, 0);
-  const pondere = d.pipeline.reduce((s,x) => s + x.montant * x.proba / 100, 0);
-  const enCours = d.pipeline.filter(x => x.statut === 'En cours' || x.statut === 'Envoyé');
-  const gagnes = d.pipeline.filter(x => x.statut === 'Gagné');
-  const txConv = d.pipeline.length ? Math.round(gagnes.length / d.pipeline.length * 100) : 0;
-
-  document.getElementById('pipeline-summary').innerHTML = `
-    <div class="card"><div class="card-label">Pipeline total</div><div class="card-value blue">${fmtK(total)}</div></div>
-    <div class="card"><div class="card-label">Pipeline pondéré</div><div class="card-value green">${fmtK(pondere)}</div></div>
-    <div class="card"><div class="card-label">Devis actifs</div><div class="card-value">${enCours.length}</div></div>
-    <div class="card"><div class="card-label">Taux conversion</div><div class="card-value">${txConv}%</div></div>
-  `;
-
-  const stColors = {'En cours':'var(--orange)','Envoyé':'var(--blue)','Gagné':'var(--green)','Perdu':'var(--danger)'};
-  let html = d.pipeline.map(p => `
-    <div class="pipeline-card">
-      <div class="pipeline-header">
-        <div><span class="pipeline-client">${p.client}</span><span style="margin-left:8px;color:var(--text2);font-size:13px">${p.projet}</span></div>
-        <div class="pipeline-amount">${fmtK(p.montant)}</div>
-      </div>
-      <div style="display:flex;gap:16px;font-size:13px;color:var(--text2)">
-        <span style="color:${stColors[p.statut]||'var(--text2)'};font-weight:600">${p.statut}</span>
-        <span>Prob: ${p.proba}%</span>
-        <span>Pondéré: ${fmtK(p.montant * p.proba / 100)}</span>
-        <span>${p.date||''}</span>
-        <button class="btn btn-sm btn-danger" onclick="deletePipeline('${p.id}')">✕</button>
-      </div>
-    </div>
-  `).join('');
-  document.getElementById('pipeline-list').innerHTML = html;
-}
-
-async function savePipeline() {
-  const p = {
-    id: 'pip' + Date.now(),
-    client: document.getElementById('pip-client').value,
-    projet: document.getElementById('pip-projet').value,
-    montant: Number(document.getElementById('pip-montant').value) || 0,
-    proba: Number(document.getElementById('pip-proba').value) || 50,
-    statut: document.getElementById('pip-statut').value,
-    date: document.getElementById('pip-date').value
-  };
-  if (!p.client || !p.montant) return;
-  window.currentData.pipeline.push(p);
-  await saveToFirebase();
-  closeModal('modal-pipeline');
-  renderPipeline();
-  // Reset
-  ['pip-client','pip-projet','pip-montant','pip-date'].forEach(id => document.getElementById(id).value = '');
-}
-
-async function deletePipeline(id) {
-  window.currentData.pipeline = window.currentData.pipeline.filter(x => x.id !== id);
-  await saveToFirebase();
-  renderPipeline();
-}
-
-// ========== CALENDRIER ==========
-function renderCalendrier() {
-  const d = window.currentData;
-  if (!d.calendrier) d.calendrier = [];
-  const sorted = [...d.calendrier].sort((a,b) => (a.date||'').localeCompare(b.date||''));
-  const today = new Date().toISOString().slice(0,10);
-
-  let html = sorted.map(c => {
-    const isPast = c.date < today;
-    const isClose = !isPast && c.date <= new Date(Date.now() + 3*86400000).toISOString().slice(0,10);
-    const urgClass = c.urgence === 'URGENT' ? 'tag-urgent' : (isClose ? 'tag-attente' : 'tag-actif');
-    return `<div class="cal-item" style="${isPast?'opacity:.5':''}">
-      <div class="cal-date">${formatDate(c.date)}</div>
-      <div class="cal-desc">
-        <div>${c.desc}</div>
-        <div style="margin-top:4px"><span class="tag ${urgClass}">${c.urgence}</span> <span class="tag tag-inactif">${c.type}</span></div>
-      </div>
-      <button class="btn btn-sm btn-danger" onclick="deleteRappel('${c.id}')">✕</button>
-    </div>`;
-  }).join('');
-  document.getElementById('calendrier-list').innerHTML = html || '<p style="padding:16px;color:var(--text2)">Aucun rappel</p>';
-}
-
-function formatDate(d) {
-  if (!d) return '—';
-  const [y,m,dd] = d.split('-');
-  return dd+'/'+m+'/'+y;
-}
-
-async function saveRappel() {
-  const r = {
-    id: 'cal' + Date.now(),
-    date: document.getElementById('rap-date').value,
-    type: document.getElementById('rap-type').value,
-    desc: document.getElementById('rap-desc').value,
-    urgence: document.getElementById('rap-urgence').value
-  };
-  if (!r.date || !r.desc) return;
-  if (!window.currentData.calendrier) window.currentData.calendrier = [];
-  window.currentData.calendrier.push(r);
-  await saveToFirebase();
-  closeModal('modal-rappel');
-  renderCalendrier();
-  document.getElementById('rap-desc').value = '';
-}
-
-async function deleteRappel(id) {
-  window.currentData.calendrier = window.currentData.calendrier.filter(x => x.id !== id);
-  await saveToFirebase();
-  renderCalendrier();
-}
-
-// ========== NOTIFICATIONS ==========
-function requestNotifPermission() {
-  if ('Notification' in window) {
-    Notification.requestPermission().then(p => {
-      if (p === 'granted') alert('Notifications activées !');
-    });
-  }
-}
-function checkNotifications() {
-  if (!('Notification' in window) || Notification.permission !== 'granted') return;
-  if (!window.currentData || !window.currentData.calendrier) return;
-  const now = new Date();
-  const in3d = new Date(now.getTime() + 3 * 86400000);
-  window.currentData.calendrier.forEach(c => {
-    const d = new Date(c.date);
-    if (d >= now && d <= in3d) {
-      new Notification('Déclic — Rappel J-3', { body: c.desc, icon: '🔔' });
-    }
-  });
-}
-
-// ========== CHARTS ==========
-function renderCharts() {
-  const d = window.currentData;
-  const isDark = document.body.classList.contains('dark');
-  const gridColor = isDark ? '#333' : '#eee';
-  const textColor = isDark ? '#aaa' : '#666';
-
-  // Destroy existing
-  Object.values(window.chartInstances).forEach(c => { try{c.destroy();}catch(e){} });
-  window.chartInstances = {};
-
-  // CA par client
-  const ctx1 = document.getElementById('chart-ca-client');
-  if (ctx1) {
-    window.chartInstances.caClient = new Chart(ctx1, {
-      type: 'doughnut',
-      data: {
-        labels: d.caClient2025.map(x => x.client),
-        datasets: [{
-          data: d.caClient2025.map(x => x.montant),
-          backgroundColor: ['#E30613','#2980b9','#27ae60','#f39c12','#8e44ad','#e67e22','#1abc9c','#95a5a6']
-        }]
-      },
-      options: { responsive: true, plugins: { legend: { position: 'right', labels: { color: textColor } } } }
-    });
-  }
-
-  // Résultats 3 ans
-  const ctx2 = document.getElementById('chart-resultats');
-  if (ctx2) {
-    window.chartInstances.resultats = new Chart(ctx2, {
-      type: 'bar',
-      data: {
-        labels: d.resultats.annees,
-        datasets: [
-          { label: 'CA', data: d.resultats.ca, backgroundColor: '#2980b9' },
-          { label: 'Marge brute', data: d.resultats.margeBrute, backgroundColor: '#27ae60' },
-          { label: 'EBE', data: d.resultats.ebe, backgroundColor: '#f39c12' },
-          { label: 'Résultat net', data: d.resultats.resultatNet, backgroundColor: '#E30613' }
-        ]
-      },
-      options: { responsive: true, scales: { x: { ticks: { color: textColor }, grid: { color: gridColor } }, y: { ticks: { color: textColor, callback: v => fmt(v) }, grid: { color: gridColor } } }, plugins: { legend: { labels: { color: textColor } } } }
-    });
-  }
-
-  // Historique soldes
-  const ctx3 = document.getElementById('chart-soldes');
-  if (ctx3) {
-    const hist = d.tresorerie.historique;
-    const labels3 = Object.keys(hist);
-    const data3 = Object.values(hist);
-    window.chartInstances.soldes = new Chart(ctx3, {
-      type: 'line',
-      data: {
-        labels: labels3,
-        datasets: [{ label: 'Solde (MAD)', data: data3, borderColor: '#E30613', backgroundColor: 'rgba(227,6,19,0.1)', fill: true, tension: 0.3 }]
-      },
-      options: { responsive: true, scales: { x: { ticks: { color: textColor }, grid: { color: gridColor } }, y: { ticks: { color: textColor, callback: v => fmt(v) }, grid: { color: gridColor } } }, plugins: { legend: { labels: { color: textColor } } } }
-    });
-  }
-
-  // Projection 90 jours
-  const ctx4 = document.getElementById('chart-projection');
-  if (ctx4) {
-    const solde = d.tresorerie.comptePrincipal + d.tresorerie.compteBis + d.tresorerie.caisse;
-    const totalCharges = d.charges.salaires.reduce((s,x) => s+x.net, 0) + Object.values(d.charges.fixes).reduce((s,v) => s+v, 0);
-    const crKeys = Object.keys(d.creances);
-    // Simple projection: burn monthly, add expected creances in April/May
-    const projLabels = ['Mars 2026','Avril 2026','Mai 2026','Juin 2026'];
-    const encAvril = crKeys.reduce((s,k) => {
-      return s + d.creances[k].factures.filter(f => f.echeance && f.echeance.includes('Avril')).reduce((ss,f) => ss+f.montant, 0);
-    }, 0);
-    const encMai = crKeys.reduce((s,k) => {
-      return s + d.creances[k].factures.filter(f => f.echeance && f.echeance.includes('Mai')).reduce((ss,f) => ss+f.montant, 0);
-    }, 0);
-    const paiementsAvril = 35000; // Optimus
-    const paiementsMai = 25000 + 20000; // IEF + Gloria
-    const projData = [solde];
-    projData.push(solde - totalCharges + encAvril - paiementsAvril);
-    projData.push(projData[1] - totalCharges + encMai - paiementsMai);
-    projData.push(projData[2] - totalCharges);
-
-    window.chartInstances.projection = new Chart(ctx4, {
-      type: 'line',
-      data: {
-        labels: projLabels,
-        datasets: [
-          { label: 'Projection solde (MAD)', data: projData, borderColor: '#2980b9', backgroundColor: 'rgba(41,128,185,0.1)', fill: true, tension: 0.3 },
-          { label: 'Seuil critique', data: [100000,100000,100000,100000], borderColor: '#e74c3c', borderDash: [5,5], pointRadius: 0 }
-        ]
-      },
-      options: { responsive: true, scales: { x: { ticks: { color: textColor }, grid: { color: gridColor } }, y: { ticks: { color: textColor, callback: v => fmt(v) }, grid: { color: gridColor } } }, plugins: { legend: { labels: { color: textColor } } } }
-    });
-  }
-
-  window.chartsReady = true;
-}
-
-// ========== SAVE ==========
-async function saveToFirebase() {
-  try {
-    const docRef = window.fbDoc(db, 'dashboard', 'main');
-    await window.fbSetDoc(docRef, JSON.parse(JSON.stringify(window.currentData)));
-    setSyncStatus(true);
-  } catch(e) {
-    console.error('Save error:', e);
-    setSyncStatus(false);
-  }
-}
-
-// ========== EXPORT / IMPORT ==========
-function exportData() {
-  const blob = new Blob([JSON.stringify(window.currentData, null, 2)], {type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'declic-dashboard-backup-' + new Date().toISOString().slice(0,10) + '.json';
-  a.click();
-}
-function importData(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = async function(ev) {
-    try {
-      const data = JSON.parse(ev.target.result);
-      window.currentData = data;
-      await saveToFirebase();
-      renderAll();
-      alert('Import réussi !');
-    } catch(err) {
-      alert('Erreur import: ' + err.message);
-    }
-  };
-  reader.readAsText(file);
-}
-
-// ========== EXPOSE TO WINDOW (for inline handlers) ==========
-window.doLogin = doLogin;
-window.doLogout = doLogout;
-window.toggleTheme = toggleTheme;
-window.showModule = showModule;
-window.closeModal = closeModal;
-window.showAddPipeline = showAddPipeline;
-window.showAddRappel = showAddRappel;
-window.savePipeline = savePipeline;
-window.deletePipeline = deletePipeline;
-window.saveRappel = saveRappel;
-window.deleteRappel = deleteRappel;
-window.requestNotifPermission = requestNotifPermission;
-window.exportData = exportData;
-window.importData = importData;
-
-// ========== START ==========
-checkAuth();
+// ===== EXPORT/IMPORT =====
+window.exportData=()=>{const b=new Blob([JSON.stringify(D,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='declic-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();};
+window.importData=(e)=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=async(ev)=>{try{D=JSON.parse(ev.target.result);await save();renderAll();alert('Import réussi !');}catch(err){alert('Erreur: '+err.message);}};r.readAsText(f);};
+// ===== START =====
+if(sessionStorage.getItem('da')==='1'){document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='block';initApp();}
 </script>
 </body>
 </html>
