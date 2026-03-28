@@ -290,16 +290,44 @@ seuilAlerte:100000
 };}
 
 // ===== COMPUTED =====
+function ensureData(){
+const s=seed();
+if(!D.charges)D.charges={};
+if(!D.charges.salaires)D.charges.salaires=s.charges.salaires;
+if(!D.charges.admin)D.charges.admin=s.charges.admin;
+if(!D.charges.credits)D.charges.credits=s.charges.credits;
+if(!D.charges.logistique)D.charges.logistique=s.charges.logistique;
+if(!D.soldeManuel)D.soldeManuel=s.soldeManuel;
+if(!D.paiementsEnCours)D.paiementsEnCours=[];
+if(!D.todoAlerts)D.todoAlerts=s.todoAlerts;
+if(!D.releves)D.releves=[];
+if(!D.seuilAlerte)D.seuilAlerte=100000;
+if(!D.historiqueSoldes)D.historiqueSoldes=s.historiqueSoldes;
+if(!D.dettesFiscales)D.dettesFiscales=s.dettesFiscales;
+if(!D.caClient2025)D.caClient2025=s.caClient2025;
+if(!D.resultats)D.resultats=s.resultats;
+if(!D.pipeline)D.pipeline=s.pipeline;
+if(!D.calendrier)D.calendrier=s.calendrier;
+if(!D.dettes)D.dettes=s.dettes;
+if(!D.creances)D.creances=s.creances;
+D.charges.salaires.forEach((x,i)=>{if(!x.id)x.id='s'+i;});
+D.charges.admin.forEach((x,i)=>{if(!x.id)x.id='a'+i;});
+D.charges.credits.forEach((x,i)=>{if(!x.id)x.id='c'+i;});
+D.charges.logistique.forEach((x,i)=>{if(!x.id)x.id='l'+i;});
+D.dettes.forEach((x,i)=>{if(!x.id)x.id='d'+i;if(!x.paiements)x.paiements=[];});
+D.creances.forEach((x,i)=>{if(!x.id)x.id='cr'+i;if(x.classeeSansSuite===undefined)x.classeeSansSuite=false;x.factures.forEach((f,j)=>{if(!f.id)f.id='f'+i+'_'+j;});});
+}
 function getComputedData(){
+ensureData();
 const c=D.charges;
-const totSal=c.salaires.reduce((s,x)=>s+x.net,0);
-const totAdmin=c.admin.reduce((s,x)=>s+x.montant,0);
-const totCred=c.credits.reduce((s,x)=>s+x.montant,0);
-const totLog=c.logistique.reduce((s,x)=>s+x.montant,0);
+const totSal=(c.salaires||[]).reduce((s,x)=>s+(x.net||0),0);
+const totAdmin=(c.admin||[]).reduce((s,x)=>s+(x.montant||0),0);
+const totCred=(c.credits||[]).reduce((s,x)=>s+(x.montant||0),0);
+const totLog=(c.logistique||[]).reduce((s,x)=>s+(x.montant||0),0);
 const burnRate=totSal+totAdmin+totCred+totLog;
-const sm=D.soldeManuel;
-const soldeBrut=sm.comptePrincipal+sm.compteBis+sm.caisse;
-const totPEC=D.paiementsEnCours.reduce((s,x)=>s+x.montant,0);
+const sm=D.soldeManuel||{comptePrincipal:0,compteBis:0,caisse:0};
+const soldeBrut=(sm.comptePrincipal||0)+(sm.compteBis||0)+(sm.caisse||0);
+const totPEC=(D.paiementsEnCours||[]).reduce((s,x)=>s+(x.montant||0),0);
 const soldeAjuste=soldeBrut-totPEC;
 const joursSurvie=burnRate>0?Math.floor(soldeAjuste/(burnRate/30)):999;
 const totDettes=D.dettes.reduce((s,x)=>{const paid=x.paiements?x.paiements.reduce((ss,p)=>ss+p.montant,0):0;return s+(x.montant-paid);},0)+D.dettesFiscales.tva+D.dettesFiscales.is;
@@ -496,7 +524,9 @@ const accOpen=openAccs.has('cr_'+c.id);
 const totC=c.factures.reduce((s,f)=>s+f.montant,0);
 let facRows=c.factures.map(f=>`<tr><td>${f.ref}</td><td>${f.desc}</td><td style="text-align:right;font-weight:600">${fmtK(f.montant)}</td><td>${fmtD(f.echeance)}</td><td>${agingTag(f.echeance)}</td><td><button class="btn btn-sm btn-s" onclick="window.editFacture('${c.id}','${f.id}')">✎</button> <button class="btn btn-sm btn-d" onclick="window.delFacture('${c.id}','${f.id}')">✕</button></td></tr>`).join('');
 facRows+=`<tr><td colspan="6"><button class="btn btn-sm btn-p" onclick="window.addFacture('${c.id}')">+ Facture</button></td></tr>`;
-html+=`<div class="acc"><div class="acc-h ${accOpen?'open':''}" onclick="window.toggleAcc('cr_${c.id}')"><span>${c.client} — <b>${fmtK(totC)}</b></span><div style="display:flex;gap:6px;align-items:center"><button class="btn btn-sm btn-s" onclick="event.stopPropagation();window.editCreanceClient('${c.id}')">✎</button><button class="btn btn-sm btn-d" onclick="event.stopPropagation();window.classerSansSuite('${c.id}')">Classer sans suite</button><span class="arr">▶</span></div></div><div class="acc-b"><table><thead><tr><th>Réf.</th><th>Description</th><th style="text-align:right">Montant</th><th>Échéance</th><th>Aging</th><th></th></tr></thead><tbody>${facRows}</tbody></table></div></div>`;
+const isFaible=c.client.toLowerCase().includes('prob') || c.client.toLowerCase().includes('faible') || c.client.toLowerCase().includes('anciennes');
+const csBtn=isFaible?`<button class="btn btn-sm btn-d" onclick="event.stopPropagation();window.classerSansSuite('${c.id}')">Classer sans suite</button>`:'';
+html+=`<div class="acc"><div class="acc-h ${accOpen?'open':''}" onclick="window.toggleAcc('cr_${c.id}')"><span>${c.client} — <b>${fmtK(totC)}</b></span><div style="display:flex;gap:6px;align-items:center"><button class="btn btn-sm btn-s" onclick="event.stopPropagation();window.editCreanceClient('${c.id}')">✎</button>${csBtn}<span class="arr">▶</span></div></div><div class="acc-b"><table><thead><tr><th>Réf.</th><th>Description</th><th style="text-align:right">Montant</th><th>Échéance</th><th>Aging</th><th></th></tr></thead><tbody>${facRows}</tbody></table></div></div>`;
 });
 // Classées sans suite
 if(crClassees.length){
@@ -705,15 +735,12 @@ catch(e){console.error('Save:',e);setSyncStatus(false);}
 function setSyncStatus(ok){document.getElementById('sdot').className='sync-d'+(ok?'':' off');document.getElementById('slab').textContent=ok?'Connecté':'Hors ligne';}
 async function initApp(){
 const ref=doc(db,'dashboard','main');
-try{const snap=await getDoc(ref);if(!snap.exists()){D=seed();await setDoc(ref,D);}else{D=JSON.parse(JSON.stringify(snap.data()));
-// Merge missing fields
-const s=seed();if(!D.paiementsEnCours)D.paiementsEnCours=[];if(!D.todoAlerts)D.todoAlerts=s.todoAlerts;if(!D.releves)D.releves=[];if(!D.seuilAlerte)D.seuilAlerte=100000;if(!D.soldeManuel)D.soldeManuel=s.soldeManuel;if(!D.charges.admin)D.charges={...s.charges,...D.charges};if(!D.charges.logistique)D.charges.logistique=s.charges.logistique;
-// Ensure IDs
-D.charges.salaires.forEach((x,i)=>{if(!x.id)x.id='s'+i;});D.dettes.forEach((x,i)=>{if(!x.id)x.id='d'+i;if(!x.paiements)x.paiements=[];});D.creances.forEach((x,i)=>{if(!x.id)x.id='cr'+i;if(x.classeeSansSuite===undefined)x.classeeSansSuite=false;x.factures.forEach((f,j)=>{if(!f.id)f.id='f'+i+'_'+j;});});
-}setSyncStatus(true);}
-catch(e){console.error('Init:',e);setSyncStatus(false);D=seed();}
+try{const snap=await getDoc(ref);if(!snap.exists()){D=seed();await setDoc(ref,D);}else{D=JSON.parse(JSON.stringify(snap.data()));}
+ensureData();
+setSyncStatus(true);}
+catch(e){console.error('Init:',e);setSyncStatus(false);D=seed();ensureData();}
 renderAll();
-onSnapshot(ref,snap=>{if(snap.exists()){const newD=JSON.parse(JSON.stringify(snap.data()));D=newD;setSyncStatus(true);renderAll();}},err=>{console.error('Snap:',err);setSyncStatus(false);});
+onSnapshot(ref,snap=>{if(snap.exists()){D=JSON.parse(JSON.stringify(snap.data()));ensureData();setSyncStatus(true);renderAll();}},err=>{console.error('Snap:',err);setSyncStatus(false);});
 }
 // ===== EXPORT/IMPORT =====
 window.exportData=()=>{const b=new Blob([JSON.stringify(D,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='declic-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();};
