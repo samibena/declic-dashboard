@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Déclic — Dashboard Financier</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --red: #E30613;
+  --red-dark: #B80510;
+  --gray: #4A4A4A;
+  --bg: #ffffff;
+  --bg2: #f5f5f5;
+  --bg3: #eaeaea;
+  --text: #1a1a1a;
+  --text2: #555;
+  --card: #ffffff;
+  --card-border: #e0e0e0;
+  --shadow: rgba(0,0,0,0.06);
+  --green: #27ae60;
+  --orange: #f39c12;
+  --blue: #2980b9;
+  --danger: #e74c3c;
+}
+.dark {
+  --bg: #121212;
+  --bg2: #1e1e1e;
+  --bg3: #2a2a2a;
+  --text: #e0e0e0;
+  --text2: #aaa;
+  --card: #1e1e1e;
+  --card-border: #333;
+  --shadow: rgba(0,0,0,0.3);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); transition: background .3s, color .3s; }
+/* LOGIN */
+#login-screen { display: flex; align-items: center; justify-content: center; height: 100vh; background: var(--bg); }
+.login-box { background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; padding: 40px; text-align: center; width: 360px; box-shadow: 0 8px 32px var(--shadow); }
+.login-box img { width: 140px; margin-bottom: 24px; }
+.login-box input { width: 100%; padding: 12px 16px; border: 1px solid var(--card-border); border-radius: 8px; font-size: 15px; background: var(--bg2); color: var(--text); margin-bottom: 16px; outline: none; }
+.login-box input:focus { border-color: var(--red); }
+.login-box button { width: 100%; padding: 12px; background: var(--red); color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background .2s; }
+.login-box button:hover { background: var(--red-dark); }
+.login-error { color: var(--danger); font-size: 13px; margin-top: 8px; display: none; }
+/* LAYOUT */
+#app { display: none; }
+.topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; background: var(--card); border-bottom: 1px solid var(--card-border); position: sticky; top: 0; z-index: 100; }
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.topbar-left img { height: 32px; }
+.topbar-title { font-size: 16px; font-weight: 700; color: var(--red); }
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+.sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); display: inline-block; }
+.sync-dot.off { background: var(--danger); }
+.sync-label { font-size: 12px; color: var(--text2); }
+.theme-toggle { background: none; border: 1px solid var(--card-border); border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 14px; color: var(--text); }
+/* NAV */
+.nav { display: flex; gap: 4px; padding: 8px 24px; background: var(--bg2); overflow-x: auto; border-bottom: 1px solid var(--card-border); }
+.nav button { padding: 8px 16px; border: none; background: transparent; color: var(--text2); font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 6px; white-space: nowrap; transition: all .2s; }
+.nav button.active { background: var(--red); color: #fff; }
+.nav button:hover:not(.active) { background: var(--bg3); }
+/* CONTENT */
+.content { padding: 24px; max-width: 1400px; margin: 0 auto; }
+.module { display: none; }
+.module.active { display: block; }
+/* CARDS */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.card { background: var(--card); border: 1px solid var(--card-border); border-radius: 10px; padding: 20px; box-shadow: 0 2px 8px var(--shadow); }
+.card-label { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+.card-value { font-size: 28px; font-weight: 700; }
+.card-sub { font-size: 13px; color: var(--text2); margin-top: 4px; }
+.card-value.red { color: var(--danger); }
+.card-value.green { color: var(--green); }
+.card-value.orange { color: var(--orange); }
+.card-value.blue { color: var(--blue); }
+/* ALERTS */
+.alert-box { background: #fef3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; color: #856404; font-size: 13px; }
+.dark .alert-box { background: #3d3200; border-color: #665200; color: #ffc107; }
+.alert-danger { background: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+.dark .alert-danger { background: #3d0a0a; border-color: #5c1010; color: #f5c6cb; }
+/* TABLE */
+.table-wrap { overflow-x: auto; margin-bottom: 24px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { background: var(--bg2); color: var(--text2); font-weight: 600; text-align: left; padding: 10px 12px; border-bottom: 2px solid var(--card-border); position: sticky; top: 0; }
+td { padding: 10px 12px; border-bottom: 1px solid var(--card-border); }
+tr:hover td { background: var(--bg2); }
+/* PROGRESS */
+.progress-bar { height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 3px; transition: width .3s; }
+/* TAGS */
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.tag-urgent { background: #f8d7da; color: #721c24; }
+.tag-actif { background: #d4edda; color: #155724; }
+.tag-inactif { background: #e2e3e5; color: #383d41; }
+.tag-retard { background: #f5c6cb; color: #721c24; }
+.tag-attente { background: #fff3cd; color: #856404; }
+.dark .tag-urgent { background: #5c1010; color: #f5c6cb; }
+.dark .tag-actif { background: #0d3d1a; color: #a3d9b1; }
+.dark .tag-inactif { background: #333; color: #999; }
+.dark .tag-retard { background: #5c1010; color: #f5c6cb; }
+.dark .tag-attente { background: #3d3200; color: #ffc107; }
+/* SECTION */
+.section-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--red); display: flex; align-items: center; gap: 8px; }
+.section-title span { font-size: 20px; }
+/* CHART */
+.chart-container { background: var(--card); border: 1px solid var(--card-border); border-radius: 10px; padding: 20px; margin-bottom: 24px; }
+/* FORMS */
+.form-row { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.form-group { flex: 1; min-width: 180px; }
+.form-group label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 4px; font-weight: 600; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 13px; background: var(--bg); color: var(--text); }
+.btn { padding: 8px 16px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s; }
+.btn-primary { background: var(--red); color: #fff; }
+.btn-primary:hover { background: var(--red-dark); }
+.btn-secondary { background: var(--bg3); color: var(--text); }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-danger { background: var(--danger); color: #fff; }
+/* MODAL */
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.5); z-index: 200; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: var(--card); border-radius: 12px; padding: 24px; width: 90%; max-width: 560px; max-height: 80vh; overflow-y: auto; }
+.modal h3 { font-size: 16px; margin-bottom: 16px; }
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .cards { grid-template-columns: 1fr 1fr; }
+  .content { padding: 16px; }
+  .topbar { padding: 10px 16px; }
+  .nav { padding: 6px 16px; }
+  .card-value { font-size: 22px; }
+}
+@media (max-width: 480px) {
+  .cards { grid-template-columns: 1fr; }
+  .form-row { flex-direction: column; }
+}
+/* EXPORT/IMPORT */
+.toolbar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+/* CALENDAR */
+.cal-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-bottom: 1px solid var(--card-border); }
+.cal-date { min-width: 80px; font-weight: 700; font-size: 13px; color: var(--red); }
+.cal-desc { font-size: 13px; flex: 1; }
+.cal-tag { font-size: 11px; }
+/* PIPELINE */
+.pipeline-card { background: var(--card); border: 1px solid var(--card-border); border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+.pipeline-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.pipeline-client { font-weight: 700; font-size: 14px; }
+.pipeline-amount { font-weight: 700; color: var(--green); }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <img src="data:image/png;base64,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" alt="Déclic">
+    <input type="password" id="pwd-input" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')doLogin()">
+    <button onclick="doLogin()">Accéder</button>
+    <div class="login-error" id="login-error">Mot de passe incorrect</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <img src="data:image/png;base64,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" alt="Déclic">
+      <div class="topbar-title">Dashboard Financier</div>
+    </div>
+    <div class="topbar-right">
+      <span class="sync-dot" id="sync-dot"></span>
+      <span class="sync-label" id="sync-label">Connecté</span>
+      <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+      <button class="btn btn-sm btn-secondary" onclick="doLogout()">Déconnexion</button>
+    </div>
+  </div>
+
+  <div class="nav" id="nav">
+    <button class="active" onclick="showModule('overview',this)">🏠 Vue d'ensemble</button>
+    <button onclick="showModule('tresorerie',this)">💰 Trésorerie</button>
+    <button onclick="showModule('dettes',this)">📋 Dettes fournisseurs</button>
+    <button onclick="showModule('creances',this)">📊 Créances clients</button>
+    <button onclick="showModule('pipeline',this)">🎯 Pipeline</button>
+    <button onclick="showModule('calendrier',this)">📅 Calendrier</button>
+  </div>
+
+  <div class="content">
+    <!-- TOOLBAR GLOBAL -->
+    <div class="toolbar">
+      <button class="btn btn-sm btn-secondary" onclick="exportData()">📥 Export JSON</button>
+      <button class="btn btn-sm btn-secondary" onclick="document.getElementById('import-file').click()">📤 Import JSON</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+
+    <!-- MODULE 1: VUE D'ENSEMBLE -->
+    <div class="module active" id="mod-overview">
+      <div class="section-title"><span>🏠</span> Vue d'ensemble</div>
+      <div id="overview-alerts"></div>
+      <div class="cards" id="overview-cards"></div>
+      <div class="chart-container">
+        <h4 style="margin-bottom:12px">CA par client 2025</h4>
+        <canvas id="chart-ca-client" height="280"></canvas>
+      </div>
+      <div class="chart-container">
+        <h4 style="margin-bottom:12px">Évolution Résultats (3 ans)</h4>
+        <canvas id="chart-resultats" height="260"></canvas>
+      </div>
+    </div>
+
+    <!-- MODULE 2: TRÉSORERIE -->
+    <div class="module" id="mod-tresorerie">
+      <div class="section-title"><span>💰</span> Trésorerie</div>
+      <div class="cards" id="treso-cards"></div>
+      <div class="section-title" style="margin-top:24px"><span>📊</span> Charges fixes mensuelles</div>
+      <div class="table-wrap" id="treso-charges-table"></div>
+      <div class="chart-container">
+        <h4 style="margin-bottom:12px">Historique soldes mensuels</h4>
+        <canvas id="chart-soldes" height="280"></canvas>
+      </div>
+      <div class="chart-container">
+        <h4 style="margin-bottom:12px">Projection 90 jours</h4>
+        <canvas id="chart-projection" height="260"></canvas>
+      </div>
+    </div>
+
+    <!-- MODULE 3: DETTES -->
+    <div class="module" id="mod-dettes">
+      <div class="section-title"><span>📋</span> Dettes fournisseurs</div>
+      <div class="cards" id="dettes-summary"></div>
+      <div class="table-wrap" id="dettes-table"></div>
+    </div>
+
+    <!-- MODULE 4: CRÉANCES -->
+    <div class="module" id="mod-creances">
+      <div class="section-title"><span>📊</span> Créances clients</div>
+      <div class="cards" id="creances-summary"></div>
+      <div id="creances-sections"></div>
+    </div>
+
+    <!-- MODULE 5: PIPELINE -->
+    <div class="module" id="mod-pipeline">
+      <div class="section-title"><span>🎯</span> Pipeline commercial</div>
+      <div class="cards" id="pipeline-summary"></div>
+      <div id="pipeline-list"></div>
+      <div style="margin-top:16px">
+        <button class="btn btn-primary" onclick="showAddPipeline()">+ Nouveau devis</button>
+      </div>
+    </div>
+
+    <!-- MODULE 6: CALENDRIER -->
+    <div class="module" id="mod-calendrier">
+      <div class="section-title"><span>📅</span> Calendrier & Rappels</div>
+      <div style="margin-bottom:16px">
+        <button class="btn btn-primary" onclick="showAddRappel()">+ Nouveau rappel</button>
+        <button class="btn btn-sm btn-secondary" onclick="requestNotifPermission()" style="margin-left:8px">🔔 Activer notifications</button>
+      </div>
+      <div id="calendrier-list" class="card"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ADD PIPELINE -->
+<div class="modal-overlay" id="modal-pipeline">
+  <div class="modal">
+    <h3>Nouveau devis</h3>
+    <div class="form-row">
+      <div class="form-group"><label>Client</label><input id="pip-client"></div>
+      <div class="form-group"><label>Projet</label><input id="pip-projet"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Montant HT (MAD)</label><input id="pip-montant" type="number"></div>
+      <div class="form-group"><label>Probabilité (%)</label><input id="pip-proba" type="number" min="0" max="100" value="50"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Statut</label>
+        <select id="pip-statut">
+          <option>En cours</option><option>Envoyé</option><option>Gagné</option><option>Perdu</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Date envoi</label><input id="pip-date" type="date"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-primary" onclick="savePipeline()">Enregistrer</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-pipeline')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ADD RAPPEL -->
+<div class="modal-overlay" id="modal-rappel">
+  <div class="modal">
+    <h3>Nouveau rappel</h3>
+    <div class="form-row">
+      <div class="form-group"><label>Date</label><input id="rap-date" type="date"></div>
+      <div class="form-group"><label>Type</label>
+        <select id="rap-type"><option>Fiscal</option><option>Fournisseur</option><option>Crédit</option><option>Client</option><option>Autre</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Description</label><input id="rap-desc"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Urgence</label>
+        <select id="rap-urgence"><option>Normale</option><option>URGENT</option></select>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-primary" onclick="saveRappel()">Enregistrer</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-rappel')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+// ========== FIREBASE CONFIG (ESM) ==========
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBCj_WKPfgmT_Z1Fx1ns5X0pvXfkrkCCcs",
+  authDomain: "declic-dashboard.firebaseapp.com",
+  projectId: "declic-dashboard",
+  storageBucket: "declic-dashboard.firebasestorage.app",
+  messagingSenderId: "119730078205",
+  appId: "1:119730078205:web:d2b97722d725d040839994"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+window.db = db;
+window.fbDoc = doc;
+window.fbGetDoc = getDoc;
+window.fbSetDoc = setDoc;
+window.fbOnSnapshot = onSnapshot;
+
+// ========== AUTH ==========
+const PASS = 'bouchrasamideclic2026';
+function doLogin() {
+  const v = document.getElementById('pwd-input').value;
+  if (v === PASS) {
+    sessionStorage.setItem('declic-auth', '1');
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    initApp();
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+  }
+}
+function doLogout() {
+  sessionStorage.removeItem('declic-auth');
+  location.reload();
+}
+function checkAuth() {
+  if (sessionStorage.getItem('declic-auth') === '1') {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    initApp();
+  }
+}
+
+// ========== THEME ==========
+function toggleTheme() {
+  document.body.classList.toggle('dark');
+  const btn = document.querySelector('.theme-toggle');
+  btn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+  localStorage.setItem('declic-theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+  // Redraw charts
+  if (window.chartsReady) renderCharts();
+}
+function loadTheme() {
+  if (localStorage.getItem('declic-theme') === 'dark') {
+    document.body.classList.add('dark');
+    document.querySelector('.theme-toggle').textContent = '☀️';
+  }
+}
+loadTheme();
+
+// ========== NAVIGATION ==========
+function showModule(id, btn) {
+  document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+  document.getElementById('mod-' + id).classList.add('active');
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+// ========== MODALS ==========
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function showAddPipeline() { document.getElementById('modal-pipeline').classList.add('show'); }
+function showAddRappel() { document.getElementById('modal-rappel').classList.add('show'); }
+
+// ========== FORMAT ==========
+function fmt(n) { return new Intl.NumberFormat('fr-FR').format(Math.round(n)); }
+function fmtK(n) { return fmt(n) + ' MAD'; }
+
+// ========== SEED DATA ==========
+function getSeedData() {
+  return {
+    tresorerie: {
+      comptePrincipal: 169357,
+      compteBis: 340,
+      caisse: 2945,
+      historique: {
+        '03/2025':392940,'04/2025':53512,'05/2025':364266,'06/2025':266776,
+        '07/2025':247661,'08/2025':206155,'09/2025':15105,'10/2025':281918,
+        '11/2025':484837,'12/2025':428475,'01/2026':257646,'02/2026':44778,'03/2026':169697
+      }
+    },
+    charges: {
+      salaires: [
+        {nom:'Boukhrissi Omar',role:'associé',net:20420},
+        {nom:'Zoui Fayçal',role:'associé',net:25000},
+        {nom:'Ben Abdel Hamid Sami',role:'associé/gérant',net:20420},
+        {nom:'Ben Abdel Hamid Yassine',role:'associé/digital',net:10362},
+        {nom:'Boutsis Bouchra',role:'admin',net:9694},
+        {nom:'Ghoti Hassan',role:'production',net:14803},
+        {nom:'El Ouafi Redouane',role:'terrain',net:5142},
+        {nom:'Saihi Zhor',role:'support',net:4018},
+        {nom:'Benabdelhamid Kamil',role:'média',net:13339},
+        {nom:'Mesbah Abdellah',role:'terrain',net:12699},
+        {nom:'Markhouss Ayoub',role:'activation',net:7000},
+        {nom:'Bendaher Fouad',role:'logistique',net:5041},
+        {nom:'Lkabouse Fayçal',role:'production',net:6334},
+        {nom:'Ammar Zain',role:'digital',net:13000},
+        {nom:'Dyab Mohammed',role:'création',net:9000},
+        {nom:'Dardouz Youssef',role:'production',net:6500}
+      ],
+      fixes: {cnss:43000,ir:24000,chargesFixes:20000,eqdom:4013,sofac:8129,rci:3700,saham:12700}
+    },
+    dettes: [
+      {nom:'Les Idées en Fête',montant:631728,statut:'Actif',convention:'Pas de conv.',priorite:'URGENT',plan:'Min 25K/mois',debut:'Mai 2026'},
+      {nom:'Gloria',montant:306400,statut:'Actif',convention:'Pas de conv.',priorite:'URGENT',plan:'Min 20K/mois',debut:'Mai 2026'},
+      {nom:'Manycon (Hicham)',montant:191780,statut:'Inactif',convention:'Conv. signée',priorite:'Historique',plan:'—',debut:'Juillet 2026'},
+      {nom:'Fc Media',montant:185208,statut:'Inactif',convention:'Pas de conv.',priorite:'En négociation',plan:'—',debut:'Après rapprochement'},
+      {nom:'Néo Billboard',montant:175320,statut:'Inactif',convention:'Pas de conv.',priorite:'Historique',plan:'—',debut:'Juillet 2026'},
+      {nom:'Traiteur Baya',montant:117700,statut:'Actif',convention:'Pas de conv.',priorite:'Actif',plan:'Min 15K/mois',debut:'Juin 2026'},
+      {nom:'INDUS pôle Technique',montant:110995,statut:'Inactif',convention:'Conv. signée',priorite:'Historique',plan:'—',debut:'Juillet 2026'},
+      {nom:'Optimus',montant:100200,statut:'Actif',convention:'Conv. en cours',priorite:'URGENT',plan:'35K initial + min 20K/mois',debut:'Avril 2026'},
+      {nom:'Fly Drones',montant:84000,statut:'Inactif',convention:'Conv. signée',priorite:'Historique',plan:'—',debut:'Juillet 2026'},
+      {nom:'Yassine Mourabit',montant:80000,statut:'Inactif',convention:'Pas de conv.',priorite:'Interne',plan:'—',debut:'À discuter'},
+      {nom:'Telquel',montant:61200,statut:'Inactif',convention:'Conv. signée',priorite:'Historique',plan:'—',debut:'Juillet 2026'},
+      {nom:'Loditec',montant:50960,statut:'Inactif',convention:'Pas de conv.',priorite:'Historique',plan:'—',debut:'Juillet 2026'},
+      {nom:'Atoutloc',montant:49800,statut:'Inactif',convention:'Pas de conv.',priorite:'Historique',plan:'—',debut:'Juillet 2026'},
+      {nom:'Adil Lotfi',montant:48000,statut:'Inactif',convention:'Pas de conv.',priorite:'Historique',plan:'—',debut:'Juillet 2026'},
+      {nom:'EKO6TM',montant:42000,statut:'Inactif',convention:'Pas de conv.',priorite:'Historique',plan:'—',debut:'Juillet 2026'},
+      {nom:'Light Digital',montant:41040,statut:'Inactif',convention:'Pas de conv.',priorite:'Historique',plan:'—',debut:'Juillet 2026'},
+      {nom:'Luxe Radio',montant:40800,statut:'Inactif',convention:'Conv. signée',priorite:'Historique',plan:'—',debut:'Juillet 2026'},
+      {nom:'Imperium Media',montant:34800,statut:'Inactif',convention:'Pas de conv.',priorite:'Historique',plan:'—',debut:'Juillet 2026'},
+      {nom:'Flex Covers',montant:32400,statut:'Inactif',convention:'Pas de conv.',priorite:'Historique',plan:'—',debut:'Juillet 2026'}
+    ],
+    dettesFiscales: {tva:50000, is:45000},
+    creances: {
+      smt: {client:'SMT',total:280992,statut:'En attente',factures:[
+        {ref:'2026/0005',desc:'Dima Fiesta',montant:7392,echeance:'Avril 2026'},
+        {ref:'2026/0015',desc:'Mini log',montant:66000,echeance:'Mai 2026'},
+        {ref:'2026/0016',desc:'Budget Media',montant:44280,echeance:'Mai 2026'},
+        {ref:'2026/0017',desc:'Déclinaisons',montant:10320,echeance:'Mai 2026'},
+        {ref:'2026/0018',desc:'Forfait Création Graphique',montant:54000,echeance:'Mai 2026'},
+        {ref:'2026/0019',desc:'Collaboration Dynamart',montant:96000,echeance:'Mai 2026'},
+        {ref:'2026/0028',desc:'Adaptation Visuel Street Art',montant:3000,echeance:'Mai 2026'}
+      ]},
+      cac: {client:'CAC',total:210439,statut:'En attente',factures:[
+        {ref:'2026/0010',desc:'—',montant:3168,echeance:'Avril 2026'},
+        {ref:'2026/0011',desc:'—',montant:3802,echeance:'Avril 2026'},
+        {ref:'2026/0012',desc:'—',montant:17107,echeance:'Avril 2026'},
+        {ref:'2026/0020',desc:'Expo 1-54 Art Fair',montant:41580,echeance:'Avril 2026'},
+        {ref:'2026/0021',desc:'—',montant:9042,echeance:'Avril 2026'},
+        {ref:'2026/0022',desc:'—',montant:7814,echeance:'Avril 2026'},
+        {ref:'2026/0024',desc:'—',montant:115368,echeance:'Avril 2026'},
+        {ref:'2026/0025',desc:'—',montant:1998,echeance:'Mai 2026'},
+        {ref:'2026/0026',desc:'—',montant:26400,echeance:'Mai 2026'},
+        {ref:'2026/0029',desc:'—',montant:3300,echeance:'Mai 2026'}
+      ]},
+      volvo: {client:'Volvo (Scandinavian)',total:66306,statut:'EN RETARD',factures:[
+        {ref:'2025/0267',desc:'—',montant:66306,echeance:'Janvier 2026'}
+      ]},
+      yango: {client:'Yango',total:35799,statut:'En attente',factures:[
+        {ref:'PE Nov',desc:'UGC',montant:4140,echeance:'Ancien'},
+        {ref:'2026/0014',desc:'Yango UGC Fév',montant:1449,echeance:'Avril 2026'},
+        {ref:'2026/0030',desc:'Yango FEES Mars',montant:24000,echeance:'Avril 2026'},
+        {ref:'2026/0031',desc:'Yango UGC Mars',montant:6210,echeance:'Avril 2026'}
+      ]},
+      anciennes: {client:'Créances anciennes (prob. faible)',total:156233,statut:'Faible',factures:[
+        {ref:'—',desc:'Eko6tem',montant:60000,echeance:'—'},
+        {ref:'—',desc:'RA Motor Sud-Agadir',montant:39120,echeance:'—'},
+        {ref:'—',desc:'K.G.K Shoes',montant:25920,echeance:'—'},
+        {ref:'—',desc:'Most Food',montant:20000,echeance:'—'},
+        {ref:'—',desc:'G4S',montant:9744,echeance:'—'},
+        {ref:'—',desc:'Universal Music',montant:1449,echeance:'—'}
+      ]}
+    },
+    caClient2025: [
+      {client:'SBM',montant:5448115,pct:39.8},
+      {client:'CAC',montant:3843751,pct:28.0},
+      {client:'Stellantis',montant:1669029,pct:12.2},
+      {client:'LK Automotive',montant:1077456,pct:7.9},
+      {client:'Scandinavian Auto',montant:526695,pct:3.8},
+      {client:'Yango',montant:364185,pct:2.7},
+      {client:'Universal Music',montant:232564,pct:1.7},
+      {client:'Autres',montant:545400,pct:4.0}
+    ],
+    resultats: {
+      ca: [9120485,14621356,13683716],
+      margeBrute: [2164387,3953919,4196437],
+      tauxMarge: [23.7,27.0,30.7],
+      chargesPersonnel: [1086982,2740642,3656479],
+      ebe: [626574,926963,266678],
+      resultatNet: [413932,689166,246799],
+      annees: ['2023','2024','2025']
+    },
+    pipeline: [
+      {id:'pip1',client:'DWTC/Phillip',projet:'GITEX Africa SM Production',montant:165000,proba:80,statut:'En cours',date:'2026-03-20'},
+      {id:'pip2',client:'Kaoun International',projet:'GITEX SM Management',montant:120000,proba:60,statut:'En cours',date:'2026-03-25'},
+      {id:'pip3',client:'Sisal Loterie Maroc',projet:'AO Lots 1 & 2',montant:840000,proba:40,statut:'Envoyé',date:'2026-03-15'},
+      {id:'pip4',client:'Alfa Romeo / Passage Fitness',projet:'Co-branding Partnership',montant:85000,proba:50,statut:'En cours',date:'2026-03-22'},
+      {id:'pip5',client:'Stellantis Morocco',projet:'Jeep Compass Launch (3 events)',montant:950000,proba:35,statut:'En cours',date:'2026-03-10'}
+    ],
+    calendrier: [
+      {id:'cal1',date:'2026-04-01',type:'Fiscal',desc:'Déclaration délais paiement 2025 (DGI/SIMPL)',urgence:'URGENT'},
+      {id:'cal2',date:'2026-04-14',type:'Crédit',desc:'Échéances crédits mensuels (Eqdom+Sofac+RCI+Saham = 28 542 MAD)',urgence:'Normale'},
+      {id:'cal3',date:'2026-04-15',type:'Fiscal',desc:'CNSS (~43K) + IR (~24K)',urgence:'Normale'},
+      {id:'cal4',date:'2026-04-30',type:'Fournisseur',desc:'1er versement Optimus (35K)',urgence:'URGENT'},
+      {id:'cal5',date:'2026-04-30',type:'Fiscal',desc:'Déclaration trimestrielle T1 2026',urgence:'URGENT'},
+      {id:'cal6',date:'2026-05-01',type:'Fournisseur',desc:'1er versement Les Idées en Fête (25K)',urgence:'URGENT'},
+      {id:'cal7',date:'2026-05-01',type:'Fournisseur',desc:'1er versement Gloria (20K)',urgence:'URGENT'},
+      {id:'cal8',date:'2026-05-14',type:'Crédit',desc:'Échéances crédits mai (28 542 MAD)',urgence:'Normale'},
+      {id:'cal9',date:'2026-06-01',type:'Fournisseur',desc:'1er versement Traiteur Baya (15K)',urgence:'Normale'}
+    ]
+  };
+}
+
+// ========== STATE ==========
+window.currentData = null;
+window.chartsReady = false;
+window.chartInstances = {};
+
+// ========== INIT ==========
+async function initApp() {
+  const docRef = window.fbDoc(db, 'dashboard', 'main');
+  // Check if data exists
+  try {
+    const snap = await window.fbGetDoc(docRef);
+    if (!snap.exists()) {
+      // Seed
+      const seed = getSeedData();
+      await window.fbSetDoc(docRef, seed);
+      window.currentData = JSON.parse(JSON.stringify(seed));
+    } else {
+      window.currentData = JSON.parse(JSON.stringify(snap.data()));
+    }
+    setSyncStatus(true);
+  } catch(e) {
+    console.error('Firebase error:', e);
+    setSyncStatus(false);
+    // Fallback to seed
+    window.currentData = JSON.parse(JSON.stringify(getSeedData()));
+  }
+  renderAll();
+  // Listen for realtime updates
+  window.fbOnSnapshot(docRef, snap => {
+    if (snap.exists()) {
+      window.currentData = JSON.parse(JSON.stringify(snap.data()));
+      setSyncStatus(true);
+      renderAll();
+    }
+  }, err => {
+    console.error('Snapshot error:', err);
+    setSyncStatus(false);
+  });
+  // Check calendar notifications
+  checkNotifications();
+}
+
+function setSyncStatus(ok) {
+  const dot = document.getElementById('sync-dot');
+  const label = document.getElementById('sync-label');
+  if (ok) { dot.className='sync-dot'; label.textContent='Connecté'; }
+  else { dot.className='sync-dot off'; label.textContent='Hors ligne'; }
+}
+
+// ========== RENDER ALL ==========
+function renderAll() {
+  if (!window.currentData) return;
+  renderOverview();
+  renderTresorerie();
+  renderDettes();
+  renderCreances();
+  renderPipeline();
+  renderCalendrier();
+  renderCharts();
+}
+
+// ========== OVERVIEW ==========
+function renderOverview() {
+  const d = window.currentData;
+  const t = d.tresorerie;
+  const solde = t.comptePrincipal + t.compteBis + t.caisse;
+  const totalDettes = d.dettes.reduce((s,x) => s+x.montant, 0) + d.dettesFiscales.tva + d.dettesFiscales.is;
+  const totalCharges = d.charges.salaires.reduce((s,x) => s+x.net, 0) + Object.values(d.charges.fixes).reduce((s,v) => s+v, 0);
+  const burnRate = totalCharges;
+  const joursSurvie = Math.floor(solde / (burnRate / 30));
+  const crKeys = Object.keys(d.creances);
+  const totalCreances = crKeys.reduce((s,k) => s + d.creances[k].total, 0);
+
+  // Alerts
+  let alerts = '';
+  if (joursSurvie < 30) alerts += '<div class="alert-box alert-danger">⚠️ <strong>ALERTE CRITIQUE</strong> — Moins de 30 jours de trésorerie au rythme actuel ('+joursSurvie+' jours)</div>';
+  const urgents = d.dettes.filter(x => x.priorite === 'URGENT');
+  if (urgents.length) alerts += '<div class="alert-box">🚨 <strong>'+urgents.length+' fournisseurs URGENT</strong> — '+urgents.map(x=>x.nom).join(', ')+'</div>';
+  if (d.creances.volvo && d.creances.volvo.statut === 'EN RETARD') alerts += '<div class="alert-box alert-danger">⏰ <strong>Volvo EN RETARD</strong> — '+fmtK(d.creances.volvo.total)+' (échéance jan. 2026)</div>';
+  document.getElementById('overview-alerts').innerHTML = alerts;
+
+  document.getElementById('overview-cards').innerHTML = `
+    <div class="card"><div class="card-label">Solde total</div><div class="card-value ${solde<100000?'red':'green'}">${fmtK(solde)}</div><div class="card-sub">Principal: ${fmtK(t.comptePrincipal)}</div></div>
+    <div class="card"><div class="card-label">Burn rate mensuel</div><div class="card-value red">${fmtK(burnRate)}</div><div class="card-sub">${d.charges.salaires.length} salariés + fixes</div></div>
+    <div class="card"><div class="card-label">Jours de survie</div><div class="card-value ${joursSurvie<30?'red':joursSurvie<60?'orange':'green'}">${joursSurvie} j</div><div class="card-sub">Au rythme actuel</div></div>
+    <div class="card"><div class="card-label">Dettes fournisseurs</div><div class="card-value red">${fmtK(totalDettes)}</div><div class="card-sub">Dont fiscal: ${fmtK(d.dettesFiscales.tva+d.dettesFiscales.is)}</div></div>
+    <div class="card"><div class="card-label">Créances totales</div><div class="card-value blue">${fmtK(totalCreances)}</div><div class="card-sub">${crKeys.length} clients</div></div>
+    <div class="card"><div class="card-label">Taux marge 2025</div><div class="card-value green">${d.resultats.tauxMarge[2]}%</div><div class="card-sub">vs ${d.resultats.tauxMarge[1]}% en 2024</div></div>
+  `;
+}
+
+// ========== TRÉSORERIE ==========
+function renderTresorerie() {
+  const d = window.currentData;
+  const t = d.tresorerie;
+  const solde = t.comptePrincipal + t.compteBis + t.caisse;
+  const totalSalaires = d.charges.salaires.reduce((s,x) => s+x.net, 0);
+  const f = d.charges.fixes;
+  const totalFixes = Object.values(f).reduce((s,v) => s+v, 0);
+  const totalCharges = totalSalaires + totalFixes;
+
+  document.getElementById('treso-cards').innerHTML = `
+    <div class="card"><div class="card-label">Compte principal</div><div class="card-value">${fmtK(t.comptePrincipal)}</div></div>
+    <div class="card"><div class="card-label">Compte BIS</div><div class="card-value">${fmtK(t.compteBis)}</div></div>
+    <div class="card"><div class="card-label">Caisse</div><div class="card-value">${fmtK(t.caisse)}</div></div>
+    <div class="card"><div class="card-label">Solde total</div><div class="card-value ${solde<100000?'red':'green'}">${fmtK(solde)}</div></div>
+    <div class="card"><div class="card-label">Total salaires nets</div><div class="card-value">${fmtK(totalSalaires)}</div><div class="card-sub">${d.charges.salaires.length} personnes</div></div>
+    <div class="card"><div class="card-label">Total charges mensuelles</div><div class="card-value red">${fmtK(totalCharges)}</div></div>
+  `;
+
+  // Charges table
+  let rows = d.charges.salaires.map(s => `<tr><td>${s.nom}</td><td>${s.role}</td><td style="text-align:right;font-weight:600">${fmtK(s.net)}</td></tr>`).join('');
+  rows += `<tr style="font-weight:700;border-top:2px solid var(--red)"><td colspan="2">Total salaires nets</td><td style="text-align:right">${fmtK(totalSalaires)}</td></tr>`;
+  rows += `<tr><td colspan="2">CNSS</td><td style="text-align:right">${fmtK(f.cnss)}</td></tr>`;
+  rows += `<tr><td colspan="2">IR</td><td style="text-align:right">${fmtK(f.ir)}</td></tr>`;
+  rows += `<tr><td colspan="2">Charges fixes (loyer, abos)</td><td style="text-align:right">${fmtK(f.chargesFixes)}</td></tr>`;
+  rows += `<tr><td colspan="2">Crédit Eqdom (fin 2027)</td><td style="text-align:right">${fmtK(f.eqdom)}</td></tr>`;
+  rows += `<tr><td colspan="2">Crédit Sofac (fin 2027)</td><td style="text-align:right">${fmtK(f.sofac)}</td></tr>`;
+  rows += `<tr><td colspan="2">Crédit RCI (fin 2030)</td><td style="text-align:right">${fmtK(f.rci)}</td></tr>`;
+  rows += `<tr><td colspan="2">Crédit Saham (fin 2028)</td><td style="text-align:right">${fmtK(f.saham)}</td></tr>`;
+  rows += `<tr style="font-weight:700;border-top:2px solid var(--red)"><td colspan="2">TOTAL MENSUEL</td><td style="text-align:right;color:var(--danger)">${fmtK(totalCharges)}</td></tr>`;
+
+  document.getElementById('treso-charges-table').innerHTML = `<table><thead><tr><th>Nom</th><th>Poste</th><th style="text-align:right">Net (MAD)</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+// ========== DETTES ==========
+function renderDettes() {
+  const d = window.currentData;
+  const total = d.dettes.reduce((s,x) => s+x.montant, 0);
+  const actifs = d.dettes.filter(x => x.statut === 'Actif');
+  const totalActifs = actifs.reduce((s,x) => s+x.montant, 0);
+  const urgents = d.dettes.filter(x => x.priorite === 'URGENT');
+
+  document.getElementById('dettes-summary').innerHTML = `
+    <div class="card"><div class="card-label">Total dettes fournisseurs</div><div class="card-value red">${fmtK(total)}</div></div>
+    <div class="card"><div class="card-label">Fournisseurs actifs</div><div class="card-value orange">${fmtK(totalActifs)}</div><div class="card-sub">${actifs.length} fournisseurs</div></div>
+    <div class="card"><div class="card-label">Cas urgents</div><div class="card-value red">${urgents.length}</div></div>
+    <div class="card"><div class="card-label">Dettes fiscales</div><div class="card-value red">${fmtK(d.dettesFiscales.tva + d.dettesFiscales.is)}</div><div class="card-sub">TVA: ${fmtK(d.dettesFiscales.tva)} | IS: ${fmtK(d.dettesFiscales.is)}</div></div>
+  `;
+
+  const pTag = p => {
+    if (p === 'URGENT') return '<span class="tag tag-urgent">URGENT</span>';
+    if (p === 'Actif') return '<span class="tag tag-actif">Actif</span>';
+    return '<span class="tag tag-inactif">'+p+'</span>';
+  };
+  const sTag = s => s === 'Actif' ? '<span class="tag tag-actif">Actif</span>' : '<span class="tag tag-inactif">Inactif</span>';
+
+  let rows = d.dettes.map(x => `<tr>
+    <td style="font-weight:600">${x.nom}</td>
+    <td style="text-align:right;font-weight:600">${fmtK(x.montant)}</td>
+    <td>${sTag(x.statut)}</td>
+    <td>${x.convention}</td>
+    <td>${pTag(x.priorite)}</td>
+    <td>${x.plan}</td>
+    <td>${x.debut}</td>
+  </tr>`).join('');
+
+  document.getElementById('dettes-table').innerHTML = `<table><thead><tr><th>Fournisseur</th><th style="text-align:right">Montant</th><th>Statut</th><th>Convention</th><th>Priorité</th><th>Plan</th><th>Début</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+// ========== CRÉANCES ==========
+function renderCreances() {
+  const d = window.currentData;
+  const keys = Object.keys(d.creances);
+  const total = keys.reduce((s,k) => s + d.creances[k].total, 0);
+  const retard = keys.filter(k => d.creances[k].statut === 'EN RETARD');
+  const totalRetard = retard.reduce((s,k) => s + d.creances[k].total, 0);
+  const faible = keys.filter(k => d.creances[k].statut === 'Faible');
+  const totalFaible = faible.reduce((s,k) => s + d.creances[k].total, 0);
+
+  document.getElementById('creances-summary').innerHTML = `
+    <div class="card"><div class="card-label">Créances totales</div><div class="card-value blue">${fmtK(total)}</div></div>
+    <div class="card"><div class="card-label">Recouvrable (fiable)</div><div class="card-value green">${fmtK(total - totalFaible)}</div></div>
+    <div class="card"><div class="card-label">En retard</div><div class="card-value red">${fmtK(totalRetard)}</div></div>
+    <div class="card"><div class="card-label">Prob. faible</div><div class="card-value orange">${fmtK(totalFaible)}</div></div>
+  `;
+
+  const stTag = s => {
+    if (s === 'EN RETARD') return '<span class="tag tag-retard">EN RETARD</span>';
+    if (s === 'Faible') return '<span class="tag tag-inactif">Prob. faible</span>';
+    return '<span class="tag tag-attente">En attente</span>';
+  };
+
+  let html = '';
+  keys.forEach(k => {
+    const c = d.creances[k];
+    html += `<div class="card" style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div><strong>${c.client}</strong> ${stTag(c.statut)}</div>
+        <div style="font-weight:700;font-size:18px">${fmtK(c.total)}</div>
+      </div>
+      <table><thead><tr><th>Réf.</th><th>Description</th><th style="text-align:right">Montant</th><th>Échéance</th></tr></thead><tbody>
+      ${c.factures.map(f => `<tr><td>${f.ref}</td><td>${f.desc}</td><td style="text-align:right">${fmtK(f.montant)}</td><td>${f.echeance}</td></tr>`).join('')}
+      </tbody></table>
+    </div>`;
+  });
+  document.getElementById('creances-sections').innerHTML = html;
+}
+
+// ========== PIPELINE ==========
+function renderPipeline() {
+  const d = window.currentData;
+  if (!d.pipeline) d.pipeline = [];
+  const total = d.pipeline.reduce((s,x) => s+x.montant, 0);
+  const pondere = d.pipeline.reduce((s,x) => s + x.montant * x.proba / 100, 0);
+  const enCours = d.pipeline.filter(x => x.statut === 'En cours' || x.statut === 'Envoyé');
+  const gagnes = d.pipeline.filter(x => x.statut === 'Gagné');
+  const txConv = d.pipeline.length ? Math.round(gagnes.length / d.pipeline.length * 100) : 0;
+
+  document.getElementById('pipeline-summary').innerHTML = `
+    <div class="card"><div class="card-label">Pipeline total</div><div class="card-value blue">${fmtK(total)}</div></div>
+    <div class="card"><div class="card-label">Pipeline pondéré</div><div class="card-value green">${fmtK(pondere)}</div></div>
+    <div class="card"><div class="card-label">Devis actifs</div><div class="card-value">${enCours.length}</div></div>
+    <div class="card"><div class="card-label">Taux conversion</div><div class="card-value">${txConv}%</div></div>
+  `;
+
+  const stColors = {'En cours':'var(--orange)','Envoyé':'var(--blue)','Gagné':'var(--green)','Perdu':'var(--danger)'};
+  let html = d.pipeline.map(p => `
+    <div class="pipeline-card">
+      <div class="pipeline-header">
+        <div><span class="pipeline-client">${p.client}</span><span style="margin-left:8px;color:var(--text2);font-size:13px">${p.projet}</span></div>
+        <div class="pipeline-amount">${fmtK(p.montant)}</div>
+      </div>
+      <div style="display:flex;gap:16px;font-size:13px;color:var(--text2)">
+        <span style="color:${stColors[p.statut]||'var(--text2)'};font-weight:600">${p.statut}</span>
+        <span>Prob: ${p.proba}%</span>
+        <span>Pondéré: ${fmtK(p.montant * p.proba / 100)}</span>
+        <span>${p.date||''}</span>
+        <button class="btn btn-sm btn-danger" onclick="deletePipeline('${p.id}')">✕</button>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('pipeline-list').innerHTML = html;
+}
+
+async function savePipeline() {
+  const p = {
+    id: 'pip' + Date.now(),
+    client: document.getElementById('pip-client').value,
+    projet: document.getElementById('pip-projet').value,
+    montant: Number(document.getElementById('pip-montant').value) || 0,
+    proba: Number(document.getElementById('pip-proba').value) || 50,
+    statut: document.getElementById('pip-statut').value,
+    date: document.getElementById('pip-date').value
+  };
+  if (!p.client || !p.montant) return;
+  window.currentData.pipeline.push(p);
+  await saveToFirebase();
+  closeModal('modal-pipeline');
+  renderPipeline();
+  // Reset
+  ['pip-client','pip-projet','pip-montant','pip-date'].forEach(id => document.getElementById(id).value = '');
+}
+
+async function deletePipeline(id) {
+  window.currentData.pipeline = window.currentData.pipeline.filter(x => x.id !== id);
+  await saveToFirebase();
+  renderPipeline();
+}
+
+// ========== CALENDRIER ==========
+function renderCalendrier() {
+  const d = window.currentData;
+  if (!d.calendrier) d.calendrier = [];
+  const sorted = [...d.calendrier].sort((a,b) => (a.date||'').localeCompare(b.date||''));
+  const today = new Date().toISOString().slice(0,10);
+
+  let html = sorted.map(c => {
+    const isPast = c.date < today;
+    const isClose = !isPast && c.date <= new Date(Date.now() + 3*86400000).toISOString().slice(0,10);
+    const urgClass = c.urgence === 'URGENT' ? 'tag-urgent' : (isClose ? 'tag-attente' : 'tag-actif');
+    return `<div class="cal-item" style="${isPast?'opacity:.5':''}">
+      <div class="cal-date">${formatDate(c.date)}</div>
+      <div class="cal-desc">
+        <div>${c.desc}</div>
+        <div style="margin-top:4px"><span class="tag ${urgClass}">${c.urgence}</span> <span class="tag tag-inactif">${c.type}</span></div>
+      </div>
+      <button class="btn btn-sm btn-danger" onclick="deleteRappel('${c.id}')">✕</button>
+    </div>`;
+  }).join('');
+  document.getElementById('calendrier-list').innerHTML = html || '<p style="padding:16px;color:var(--text2)">Aucun rappel</p>';
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  const [y,m,dd] = d.split('-');
+  return dd+'/'+m+'/'+y;
+}
+
+async function saveRappel() {
+  const r = {
+    id: 'cal' + Date.now(),
+    date: document.getElementById('rap-date').value,
+    type: document.getElementById('rap-type').value,
+    desc: document.getElementById('rap-desc').value,
+    urgence: document.getElementById('rap-urgence').value
+  };
+  if (!r.date || !r.desc) return;
+  if (!window.currentData.calendrier) window.currentData.calendrier = [];
+  window.currentData.calendrier.push(r);
+  await saveToFirebase();
+  closeModal('modal-rappel');
+  renderCalendrier();
+  document.getElementById('rap-desc').value = '';
+}
+
+async function deleteRappel(id) {
+  window.currentData.calendrier = window.currentData.calendrier.filter(x => x.id !== id);
+  await saveToFirebase();
+  renderCalendrier();
+}
+
+// ========== NOTIFICATIONS ==========
+function requestNotifPermission() {
+  if ('Notification' in window) {
+    Notification.requestPermission().then(p => {
+      if (p === 'granted') alert('Notifications activées !');
+    });
+  }
+}
+function checkNotifications() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  if (!window.currentData || !window.currentData.calendrier) return;
+  const now = new Date();
+  const in3d = new Date(now.getTime() + 3 * 86400000);
+  window.currentData.calendrier.forEach(c => {
+    const d = new Date(c.date);
+    if (d >= now && d <= in3d) {
+      new Notification('Déclic — Rappel J-3', { body: c.desc, icon: '🔔' });
+    }
+  });
+}
+
+// ========== CHARTS ==========
+function renderCharts() {
+  const d = window.currentData;
+  const isDark = document.body.classList.contains('dark');
+  const gridColor = isDark ? '#333' : '#eee';
+  const textColor = isDark ? '#aaa' : '#666';
+
+  // Destroy existing
+  Object.values(window.chartInstances).forEach(c => { try{c.destroy();}catch(e){} });
+  window.chartInstances = {};
+
+  // CA par client
+  const ctx1 = document.getElementById('chart-ca-client');
+  if (ctx1) {
+    window.chartInstances.caClient = new Chart(ctx1, {
+      type: 'doughnut',
+      data: {
+        labels: d.caClient2025.map(x => x.client),
+        datasets: [{
+          data: d.caClient2025.map(x => x.montant),
+          backgroundColor: ['#E30613','#2980b9','#27ae60','#f39c12','#8e44ad','#e67e22','#1abc9c','#95a5a6']
+        }]
+      },
+      options: { responsive: true, plugins: { legend: { position: 'right', labels: { color: textColor } } } }
+    });
+  }
+
+  // Résultats 3 ans
+  const ctx2 = document.getElementById('chart-resultats');
+  if (ctx2) {
+    window.chartInstances.resultats = new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: d.resultats.annees,
+        datasets: [
+          { label: 'CA', data: d.resultats.ca, backgroundColor: '#2980b9' },
+          { label: 'Marge brute', data: d.resultats.margeBrute, backgroundColor: '#27ae60' },
+          { label: 'EBE', data: d.resultats.ebe, backgroundColor: '#f39c12' },
+          { label: 'Résultat net', data: d.resultats.resultatNet, backgroundColor: '#E30613' }
+        ]
+      },
+      options: { responsive: true, scales: { x: { ticks: { color: textColor }, grid: { color: gridColor } }, y: { ticks: { color: textColor, callback: v => fmt(v) }, grid: { color: gridColor } } }, plugins: { legend: { labels: { color: textColor } } } }
+    });
+  }
+
+  // Historique soldes
+  const ctx3 = document.getElementById('chart-soldes');
+  if (ctx3) {
+    const hist = d.tresorerie.historique;
+    const labels3 = Object.keys(hist);
+    const data3 = Object.values(hist);
+    window.chartInstances.soldes = new Chart(ctx3, {
+      type: 'line',
+      data: {
+        labels: labels3,
+        datasets: [{ label: 'Solde (MAD)', data: data3, borderColor: '#E30613', backgroundColor: 'rgba(227,6,19,0.1)', fill: true, tension: 0.3 }]
+      },
+      options: { responsive: true, scales: { x: { ticks: { color: textColor }, grid: { color: gridColor } }, y: { ticks: { color: textColor, callback: v => fmt(v) }, grid: { color: gridColor } } }, plugins: { legend: { labels: { color: textColor } } } }
+    });
+  }
+
+  // Projection 90 jours
+  const ctx4 = document.getElementById('chart-projection');
+  if (ctx4) {
+    const solde = d.tresorerie.comptePrincipal + d.tresorerie.compteBis + d.tresorerie.caisse;
+    const totalCharges = d.charges.salaires.reduce((s,x) => s+x.net, 0) + Object.values(d.charges.fixes).reduce((s,v) => s+v, 0);
+    const crKeys = Object.keys(d.creances);
+    // Simple projection: burn monthly, add expected creances in April/May
+    const projLabels = ['Mars 2026','Avril 2026','Mai 2026','Juin 2026'];
+    const encAvril = crKeys.reduce((s,k) => {
+      return s + d.creances[k].factures.filter(f => f.echeance && f.echeance.includes('Avril')).reduce((ss,f) => ss+f.montant, 0);
+    }, 0);
+    const encMai = crKeys.reduce((s,k) => {
+      return s + d.creances[k].factures.filter(f => f.echeance && f.echeance.includes('Mai')).reduce((ss,f) => ss+f.montant, 0);
+    }, 0);
+    const paiementsAvril = 35000; // Optimus
+    const paiementsMai = 25000 + 20000; // IEF + Gloria
+    const projData = [solde];
+    projData.push(solde - totalCharges + encAvril - paiementsAvril);
+    projData.push(projData[1] - totalCharges + encMai - paiementsMai);
+    projData.push(projData[2] - totalCharges);
+
+    window.chartInstances.projection = new Chart(ctx4, {
+      type: 'line',
+      data: {
+        labels: projLabels,
+        datasets: [
+          { label: 'Projection solde (MAD)', data: projData, borderColor: '#2980b9', backgroundColor: 'rgba(41,128,185,0.1)', fill: true, tension: 0.3 },
+          { label: 'Seuil critique', data: [100000,100000,100000,100000], borderColor: '#e74c3c', borderDash: [5,5], pointRadius: 0 }
+        ]
+      },
+      options: { responsive: true, scales: { x: { ticks: { color: textColor }, grid: { color: gridColor } }, y: { ticks: { color: textColor, callback: v => fmt(v) }, grid: { color: gridColor } } }, plugins: { legend: { labels: { color: textColor } } } }
+    });
+  }
+
+  window.chartsReady = true;
+}
+
+// ========== SAVE ==========
+async function saveToFirebase() {
+  try {
+    const docRef = window.fbDoc(db, 'dashboard', 'main');
+    await window.fbSetDoc(docRef, JSON.parse(JSON.stringify(window.currentData)));
+    setSyncStatus(true);
+  } catch(e) {
+    console.error('Save error:', e);
+    setSyncStatus(false);
+  }
+}
+
+// ========== EXPORT / IMPORT ==========
+function exportData() {
+  const blob = new Blob([JSON.stringify(window.currentData, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'declic-dashboard-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+}
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async function(ev) {
+    try {
+      const data = JSON.parse(ev.target.result);
+      window.currentData = data;
+      await saveToFirebase();
+      renderAll();
+      alert('Import réussi !');
+    } catch(err) {
+      alert('Erreur import: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ========== EXPOSE TO WINDOW (for inline handlers) ==========
+window.doLogin = doLogin;
+window.doLogout = doLogout;
+window.toggleTheme = toggleTheme;
+window.showModule = showModule;
+window.closeModal = closeModal;
+window.showAddPipeline = showAddPipeline;
+window.showAddRappel = showAddRappel;
+window.savePipeline = savePipeline;
+window.deletePipeline = deletePipeline;
+window.saveRappel = saveRappel;
+window.deleteRappel = deleteRappel;
+window.requestNotifPermission = requestNotifPermission;
+window.exportData = exportData;
+window.importData = importData;
+
+// ========== START ==========
+checkAuth();
+</script>
+</body>
+</html>
