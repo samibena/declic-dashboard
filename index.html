@@ -348,6 +348,8 @@ if(!Array.isArray(D.ventes.imports))D.ventes.imports=Object.values(D.ventes.impo
 if(!D.ventes.recap)D.ventes.recap=[];
 if(!Array.isArray(D.ventes.recap))D.ventes.recap=Object.values(D.ventes.recap);
 // Ensure IDs
+// Force-add Ali Ben Abdel Hamid if missing (V2→V3 migration)
+if(!D.charges.salaires.find(x=>x.nom.includes('Ali Ben Abdel Hamid')||x.nom.includes('Ali Ben abdel'))){D.charges.salaires.splice(4,0,{id:'s5_ali',nom:'Ali Ben Abdel Hamid',role:'opérationnel',net:7000});}
 D.charges.salaires.forEach((x,i)=>{if(!x.id)x.id='s'+i;});
 D.charges.admin.forEach((x,i)=>{if(!x.id)x.id='a'+i;});
 D.charges.credits.forEach((x,i)=>{if(!x.id)x.id='c'+i;});
