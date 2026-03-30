@@ -153,6 +153,14 @@ tr:hover td{background:var(--bg2)}
 </div>
 </div>
 <div class="mo" id="modal"><div class="mo-c" id="modal-body"></div></div>
+<script>
+// Pre-module: doLogin available immediately before ES module loads
+window.doLogin=function(){
+const PASS='declicgestion2026';
+if(document.getElementById('pwd').value===PASS){sessionStorage.setItem('da','1');location.reload();}
+else{document.getElementById('lerr').style.display='block';}
+};
+</script>
 <script type="module">
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
 import{getFirestore,doc,getDoc,setDoc,onSnapshot}from'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
@@ -252,7 +260,16 @@ creances:[
 {id:'f28',ref:'—',desc:'Universal Music',montant:1449,echeance:''}]}
 ],
 caClient2025:[{client:'SBM',montant:5448115},{client:'CAC',montant:3843751},{client:'Stellantis',montant:1669029},{client:'LK Auto',montant:1077456},{client:'Scandinavian',montant:526695},{client:'Yango',montant:364185},{client:'Universal Music',montant:232564},{client:'Autres',montant:545400}],
-resultats:{ca:[9120485,14621356,13683716],margeBrute:[2164387,3953919,4196437],tauxMarge:[23.7,27.0,30.7],chargesPersonnel:[1086982,2740642,3656479],ebe:[626574,926963,266678],resultatNet:[413932,689166,246799],annees:['2023','2024','2025']},
+resultats:{ca:[9120485,14621356,13683716],margeBrute:[2164387,3953919,4591487],tauxMarge:[23.7,27.0,33.6],chargesPersonnel:[1086982,2740642,3655593],ebe:[626574,926963,636717],resultatNet:[413932,689166,388991],annees:['2023','2024','2025'],
+// Liasse fiscale 2025 officielle
+achatsConsommes:9092229,autresChargesExternes:293186,valeurAjoutee:4298300,dotationsExploitation:52307,resultatExploitation:584411,resultatFinancier:-19740,resultatCourant:564671,resultatNonCourant:-55233,is2025:120446,caf:441298,dividendes:141177,autofinancement:300121,
+// Bilan 2025 passif
+capitauxPropres:3034466,reportNouveau:2165475,dettesFinancement:333474,fournisseursComptes:1971968,personnel:15873,organismesSociaux:55413,etat:1451302,comptesAssocies:420959,
+// Bilan 2025 actif
+immobilisationsNettes:305542,clientsComptes:5610283,personnelDebiteur:10000,etatActif:949485,tresorerieActif:406430,totalActif:7283455,
+// Ratios
+fondsRoulement:3062398,bfr:2655968,tresorerieNette:406430,delaiClients:150
+},
 pipeline:[
 {id:'p1',client:'DWTC/Phillip',projet:'GITEX Africa SM Production',montant:165000,proba:80,statut:'En cours',date:'2026-03-20'},
 {id:'p2',client:'Kaoun International',projet:'GITEX SM Management',montant:120000,proba:60,statut:'En cours',date:'2026-03-25'},
@@ -320,6 +337,17 @@ if(!D.dismissedAlerts||!Array.isArray(D.dismissedAlerts))D.dismissedAlerts=[];
 if(!D.dettesFiscales)D.dettesFiscales=s.dettesFiscales;
 if(!D.caClient2025||!Array.isArray(D.caClient2025))D.caClient2025=s.caClient2025;
 if(!D.resultats)D.resultats=s.resultats;
+// Force liasse fiscale 2025 corrections
+D.resultats.margeBrute=[2164387,3953919,4591487];
+D.resultats.tauxMarge=[23.7,27.0,33.6];
+D.resultats.chargesPersonnel=[1086982,2740642,3655593];
+D.resultats.ebe=[626574,926963,636717];
+D.resultats.resultatNet=[413932,689166,388991];
+// Inject full liasse data
+D.resultats.achatsConsommes=9092229;D.resultats.autresChargesExternes=293186;D.resultats.valeurAjoutee=4298300;D.resultats.dotationsExploitation=52307;D.resultats.resultatExploitation=584411;D.resultats.resultatFinancier=-19740;D.resultats.resultatCourant=564671;D.resultats.resultatNonCourant=-55233;D.resultats.is2025=120446;D.resultats.caf=441298;D.resultats.dividendes=141177;D.resultats.autofinancement=300121;
+D.resultats.capitauxPropres=3034466;D.resultats.reportNouveau=2165475;D.resultats.dettesFinancement=333474;D.resultats.fournisseursComptes=1971968;D.resultats.personnel=15873;D.resultats.organismesSociaux=55413;D.resultats.etat=1451302;D.resultats.comptesAssocies=420959;
+D.resultats.immobilisationsNettes=305542;D.resultats.clientsComptes=5610283;D.resultats.personnelDebiteur=10000;D.resultats.etatActif=949485;D.resultats.tresorerieActif=406430;D.resultats.totalActif=7283455;
+D.resultats.fondsRoulement=3062398;D.resultats.bfr=2655968;D.resultats.tresorerieNette=406430;D.resultats.delaiClients=150;
 if(!D.pipeline||!Array.isArray(D.pipeline))D.pipeline=s.pipeline;
 if(!D.calendrier||!Array.isArray(D.calendrier))D.calendrier=s.calendrier;
 if(!D.dettes)D.dettes=s.dettes;
