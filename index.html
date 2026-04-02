@@ -523,11 +523,11 @@ document.getElementById('mod-tresorerie').innerHTML=`
 <div class="card"><div class="card-l">Caisse</div><div class="card-v">${fmtK(cd.caisseSolde)}</div><div class="card-s">Calculé depuis journal de caisse</div></div>
 <div class="card"><div class="card-l">Solde ajusté</div><div class="card-v ${cd.soldeAjuste<100000?'red':'green'}">${fmtK(cd.soldeAjuste)}</div><div class="card-s">Après paiements en cours</div></div>
 </div>
-<div class="stitle">📄 Importer un relevé bancaire (PDF Société Générale)</div>
-<div class="upload-zone" id="upload-zone" onclick="document.getElementById('pdf-input').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="event.preventDefault();this.classList.remove('dragover');window.handlePDF(event.dataTransfer.files)">
-<div style="font-size:24px;margin-bottom:8px">📄</div>
-<div>Glisser un PDF ici ou cliquer pour sélectionner</div>
-<input type="file" id="pdf-input" accept=".pdf" style="display:none" onchange="window.handlePDF(this.files)" multiple>
+<div class="stitle">📄 Importer un relevé bancaire (PDF ou XLS Société Générale)</div>
+<div class="upload-zone" id="upload-zone" onclick="document.getElementById('bank-input').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="event.preventDefault();this.classList.remove('dragover');window.handleBankFile(event.dataTransfer.files)">
+<div style="font-size:24px;margin-bottom:8px">🏦</div>
+<div>Glisser un relevé PDF ou XLS ici, ou cliquer pour sélectionner</div>
+<input type="file" id="bank-input" accept=".pdf,.xls,.xlsx" style="display:none" onchange="window.handleBankFile(this.files)" multiple>
 </div>
 <div id="pdf-result"></div>
 <div class="stitle" style="margin-top:16px">💳 Paiements en cours (non encore débités)</div>
@@ -1013,6 +1013,92 @@ renderCaisse();
 window.updateCaisseSoldeInit=(v)=>{D.caisse.soldeInitial=+v;save();};
 // -- Notifications --
 window.reqNotif=()=>{if('Notification'in window)Notification.requestPermission().then(p=>{if(p==='granted')alert('Notifications activées !');});};
+
+// ===== BANK FILE ROUTER =====
+window.handleBankFile=async(files)=>{
+if(!files||!files.length)return;
+const file=files[0];
+const ext=file.name.split('.').pop().toLowerCase();
+if(ext==='pdf'){window.handlePDF([file]);}
+else if(ext==='xls'||ext==='xlsx'){window.handleBankXLS(file);}
+else{document.getElementById('pdf-result').innerHTML='<div class="alrt alrt-d">Format non supporté. Utilisez un fichier PDF ou XLS.</div>';}
+};
+
+// ===== XLS/XLSX BANK STATEMENT PARSER (Société Générale Maroc) =====
+window.handleBankXLS=async(file)=>{
+const res=document.getElementById('pdf-result');
+res.innerHTML='<p>⏳ Traitement du fichier XLS...</p>';
+try{
+const buf=await file.arrayBuffer();
+const wb=XLSX.read(buf,{type:'array'});
+const ws=wb.Sheets[wb.SheetNames[0]];
+const data=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
+const allOps=[];
+const parseBankAmount=(val)=>{
+if(val==null)return 0;
+let s=String(val).replace(/\*/g,'').trim();
+if(!s)return 0;
+// Format: "10 500,00" or "1 435,38"
+s=s.replace(/\s/g,'').replace(/\./g,'').replace(',','.');
+const n=parseFloat(s);
+return isNaN(n)?0:n;
+};
+for(let i=0;i<data.length;i++){
+const row=data[i];
+if(!row||!row.length)continue;
+// Skip header rows, page breaks, empty
+const dateCell=row[1];
+if(!dateCell||typeof dateCell!=='string')continue;
+const dateMatch=dateCell.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+if(!dateMatch)continue;
+// Check it's not a header row
+const libelle=row[6];
+if(!libelle||typeof libelle!=='string')continue;
+if(libelle.includes('Libellé'))continue;
+const dateOp=dateMatch[3]+'-'+dateMatch[2]+'-'+dateMatch[1]; // yyyy-mm-dd
+const dateValCell=row[5]||'';
+const libComp=row[8]||'';
+const debitRaw=row[15];
+const creditRaw=row[16];
+const debit=parseBankAmount(debitRaw);
+const credit=parseBankAmount(creditRaw);
+if(debit===0&&credit===0)continue;
+allOps.push({
+date:dateCell,
+dateISO:dateOp,
+libelle:String(libelle).slice(0,60),
+libComp:String(libComp).slice(0,100),
+debit,
+credit,
+type:credit>0?'credit':'debit'
+});
+}
+if(!allOps.length){res.innerHTML='<div class="alrt alrt-d">Aucune opération détectée dans le fichier XLS.</div>';return;}
+const totalDebit=allOps.reduce((s,x)=>s+x.debit,0);
+const totalCredit=allOps.reduce((s,x)=>s+x.credit,0);
+const dateMin=allOps[allOps.length-1]?.date||'';
+const dateMax=allOps[0]?.date||'';
+let html=`<div class="alrt alrt-i"><b>Période: ${dateMin} → ${dateMax}</b> — ${allOps.length} opérations | Débits: ${fmtK(totalDebit)} | Crédits: ${fmtK(totalCredit)} | Solde net: ${fmtK(totalCredit-totalDebit)}</div>`;
+html+=`<div style="display:flex;gap:6px;margin-bottom:12px"><button class="btn btn-sm btn-p" onclick="window.applyBankBalance(${Math.round(totalCredit-totalDebit)})">Ajuster solde principal (+${fmtK(totalCredit-totalDebit)} net)</button></div>`;
+html+=`<div class="tw" style="max-height:400px;overflow-y:auto"><table><thead><tr><th>Date</th><th>Libellé</th><th>Détail</th><th style="text-align:right">Débit</th><th style="text-align:right">Crédit</th></tr></thead><tbody>`;
+allOps.forEach(o=>{
+html+=`<tr><td style="white-space:nowrap">${o.date}</td><td style="font-size:11px">${o.libelle}</td><td style="font-size:10px;color:var(--text2);max-width:200px;overflow:hidden;text-overflow:ellipsis">${o.libComp}</td><td style="text-align:right;color:var(--dgr)">${o.debit?fmtK(o.debit):''}</td><td style="text-align:right;color:var(--grn)">${o.credit?fmtK(o.credit):''}</td></tr>`;
+});
+html+=`</tbody></table></div>`;
+// Store in releves
+if(!D.releves)D.releves=[];
+D.releves.push({date:new Date().toISOString(),periode:dateMin+' → '+dateMax,operations:allOps.map(o=>({date:o.date,libelle:o.libelle,montant:o.debit||o.credit,type:o.type})),totalDebit,totalCredit});
+await save();
+res.innerHTML=html;
+}catch(e){console.error(e);res.innerHTML='<div class="alrt alrt-d">Erreur lecture XLS: '+e.message+'</div>';}
+};
+window.applyBankBalance=(netAmount)=>{
+if(confirm('Ajuster le solde principal de '+fmtK(netAmount)+' ?')){
+D.soldeManuel.comptePrincipal+=netAmount;
+D.soldeManuel.date=new Date().toISOString().slice(0,10);
+save();
+}
+};
 
 // ===== PDF PARSER (Société Générale Maroc) =====
 pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
