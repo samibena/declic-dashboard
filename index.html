@@ -412,7 +412,7 @@ const totLog=(c.logistique||[]).reduce((s,x)=>s+(x.montant||0),0);
 const burnRate=totSal+totAdmin+totCred+totLog;
 const sm=D.soldeManuel||{comptePrincipal:0,compteBis:0,caisse:0};
 const caisseSolde=getCaisseSolde();
-const soldeBrut=(sm.comptePrincipal||0)+(sm.compteBis||0)+caisseSolde;
+const soldeBrut=(sm.comptePrincipal||0)+caisseSolde;
 const totPEC=(D.paiementsEnCours||[]).reduce((s,x)=>s+(x.montant||0),0);
 const soldeAjuste=soldeBrut-totPEC;
 const joursSurvie=burnRate>0?Math.floor(soldeAjuste/(burnRate/30)):999;
@@ -519,7 +519,7 @@ document.getElementById('mod-tresorerie').innerHTML=`
 <div class="stitle">💰 Trésorerie</div>
 <div class="cards">
 <div class="card"><div class="card-l">Compte principal</div><div class="card-v">${fmtK(sm.comptePrincipal)}</div><div class="card-s"><button class="btn btn-sm btn-s" onclick="window.editSolde()">Modifier</button></div></div>
-<div class="card"><div class="card-l">Compte BIS</div><div class="card-v">${fmtK(sm.compteBis)}</div></div>
+<div class="card"><div class="card-l">Compte BIS (épargne)</div><div class="card-v" style="opacity:.5">${fmtK(sm.compteBis)}</div><div class="card-s">Hors calculs</div></div>
 <div class="card"><div class="card-l">Caisse</div><div class="card-v">${fmtK(cd.caisseSolde)}</div><div class="card-s">Calculé depuis journal de caisse</div></div>
 <div class="card"><div class="card-l">Solde ajusté</div><div class="card-v ${cd.soldeAjuste<100000?'red':'green'}">${fmtK(cd.soldeAjuste)}</div><div class="card-s">Après paiements en cours</div></div>
 </div>
@@ -1204,7 +1204,8 @@ html+=`<tr><td style="white-space:nowrap">${o.date}</td><td style="font-size:11p
 html+=`</tbody></table></div>`;
 res.innerHTML=html;
 renderAll();
-}catch(e){console.error(e);res.innerHTML='<div class="alrt alrt-d">Erreur: '+e.message+'</div>';}
+alert('✅ Import réussi !\n\n• ' + allOps.length + ' opérations traitées\n• ' + Object.keys(encaissements).length + ' clients identifiés\n• ' + nbDettesMaj + ' dettes fournisseurs mises à jour\n• Historique soldes mensuels mis à jour\n\n⚠️ Pensez à saisir votre solde réel dans le champ ci-dessous.');
+}catch(e){console.error(e);res.innerHTML='<div class="alrt alrt-d">Erreur: '+e.message+'</div>';alert('❌ Erreur lors de l\'import : '+e.message);}
 };
 window.applyNewSolde=()=>{
 const input=document.getElementById('new-solde-input');
