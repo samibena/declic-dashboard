@@ -1027,78 +1027,188 @@ else{document.getElementById('pdf-result').innerHTML='<div class="alrt alrt-d">F
 // ===== XLS/XLSX BANK STATEMENT PARSER (Société Générale Maroc) =====
 window.handleBankXLS=async(file)=>{
 const res=document.getElementById('pdf-result');
-res.innerHTML='<p>⏳ Traitement du fichier XLS...</p>';
+res.innerHTML='<p>⏳ Analyse du relevé bancaire...</p>';
 try{
 const buf=await file.arrayBuffer();
 const wb=XLSX.read(buf,{type:'array'});
 const ws=wb.Sheets[wb.SheetNames[0]];
 const data=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
 const allOps=[];
-const parseBankAmount=(val)=>{
+const parseBankAmt=(val)=>{
 if(val==null)return 0;
 let s=String(val).replace(/\*/g,'').trim();
 if(!s)return 0;
-// Format: "10 500,00" or "1 435,38"
 s=s.replace(/\s/g,'').replace(/\./g,'').replace(',','.');
 const n=parseFloat(s);
-return isNaN(n)?0:n;
+return isNaN(n)?0:Math.round(n*100)/100;
 };
 for(let i=0;i<data.length;i++){
 const row=data[i];
 if(!row||!row.length)continue;
-// Skip header rows, page breaks, empty
 const dateCell=row[1];
 if(!dateCell||typeof dateCell!=='string')continue;
-const dateMatch=dateCell.match(/^(\d{2})-(\d{2})-(\d{4})$/);
-if(!dateMatch)continue;
-// Check it's not a header row
+const dm=dateCell.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+if(!dm)continue;
 const libelle=row[6];
-if(!libelle||typeof libelle!=='string')continue;
-if(libelle.includes('Libellé'))continue;
-const dateOp=dateMatch[3]+'-'+dateMatch[2]+'-'+dateMatch[1]; // yyyy-mm-dd
-const dateValCell=row[5]||'';
-const libComp=row[8]||'';
-const debitRaw=row[15];
-const creditRaw=row[16];
-const debit=parseBankAmount(debitRaw);
-const credit=parseBankAmount(creditRaw);
+if(!libelle||typeof libelle!=='string'||libelle.includes('Libellé'))continue;
+const dateISO=dm[3]+'-'+dm[2]+'-'+dm[1];
+const libComp=row[8]?String(row[8]):'';
+const debit=parseBankAmt(row[15]);
+const credit=parseBankAmt(row[16]);
 if(debit===0&&credit===0)continue;
-allOps.push({
-date:dateCell,
-dateISO:dateOp,
-libelle:String(libelle).slice(0,60),
-libComp:String(libComp).slice(0,100),
-debit,
-credit,
-type:credit>0?'credit':'debit'
-});
+allOps.push({date:dateCell,dateISO,libelle:String(libelle).slice(0,60),libComp:libComp.slice(0,120),debit,credit,type:credit>0?'credit':'debit'});
 }
-if(!allOps.length){res.innerHTML='<div class="alrt alrt-d">Aucune opération détectée dans le fichier XLS.</div>';return;}
+if(!allOps.length){res.innerHTML='<div class="alrt alrt-d">Aucune opération détectée.</div>';return;}
+// === CALCULS ===
 const totalDebit=allOps.reduce((s,x)=>s+x.debit,0);
 const totalCredit=allOps.reduce((s,x)=>s+x.credit,0);
 const dateMin=allOps[allOps.length-1]?.date||'';
 const dateMax=allOps[0]?.date||'';
-let html=`<div class="alrt alrt-i"><b>Période: ${dateMin} → ${dateMax}</b> — ${allOps.length} opérations | Débits: ${fmtK(totalDebit)} | Crédits: ${fmtK(totalCredit)} | Solde net: ${fmtK(totalCredit-totalDebit)}</div>`;
-html+=`<div style="display:flex;gap:6px;margin-bottom:12px"><button class="btn btn-sm btn-p" onclick="window.applyBankBalance(${Math.round(totalCredit-totalDebit)})">Ajuster solde principal (+${fmtK(totalCredit-totalDebit)} net)</button></div>`;
-html+=`<div class="tw" style="max-height:400px;overflow-y:auto"><table><thead><tr><th>Date</th><th>Libellé</th><th>Détail</th><th style="text-align:right">Débit</th><th style="text-align:right">Crédit</th></tr></thead><tbody>`;
+// === 1. RAPPROCHEMENT CLIENTS (crédits → créances) ===
+const clientMap=[
+{keys:['BOISSON','SBM'],client:'SBM'},
+{keys:['CENTR AUTOMOBIL','CAC'],client:'CAC'},
+{keys:['STELLANTIS'],client:'Stellantis'},
+{keys:['SCANDINAVIAN','VOLVO'],client:'Scandinavian'},
+{keys:['YANGO'],client:'Yango'},
+{keys:['MAROCAINE DES TABACS','SMT','TABACS'],client:'SMT'},
+{keys:['LK AUTO','LK.AUTO'],client:'LK Auto'},
+{keys:['SOPRA'],client:'Sopra HR'},
+{keys:['RIDETECHNOLOGY','RIDE TECHNOLOGY'],client:'Yango'},
+{keys:['ARCADIUS'],client:'Arcadius'},
+{keys:['PALAIS DE FES'],client:'Palais de Fès'},
+{keys:['ACTE.PROD','ACTE PROD'],client:'Acte Prod'},
+];
+const encaissements={};
+allOps.filter(o=>o.credit>0).forEach(o=>{
+const full=(o.libelle+' '+o.libComp).toUpperCase();
+let matched=false;
+for(const cm of clientMap){
+if(cm.keys.some(k=>full.includes(k))){
+if(!encaissements[cm.client])encaissements[cm.client]={total:0,ops:[]};
+encaissements[cm.client].total+=o.credit;
+encaissements[cm.client].ops.push(o);
+matched=true;break;
+}}
+if(!matched){
+if(!encaissements['_Autres'])encaissements['_Autres']={total:0,ops:[]};
+encaissements['_Autres'].total+=o.credit;
+encaissements['_Autres'].ops.push(o);
+}
+});
+// === 2. RAPPROCHEMENT FOURNISSEURS (débits → dettes) ===
+const fournMap=[
+{keys:['OPTIMUS'],nom:'Optimus'},
+{keys:['GLORIA'],nom:'Gloria'},
+{keys:['MANYCON','MANYCOM'],nom:'Manycon (Hicham)'},
+{keys:['B&F CATEN','TRAITEUR BAYA','BAYA'],nom:'Traiteur Baya'},
+{keys:['IDEES EN FETE'],nom:'Les Idées en Fête'},
+{keys:['FLY DRONE','FLY-DRONE'],nom:'Fly Drones'},
+{keys:['TELQUEL','TEL QUEL'],nom:'Telquel'},
+{keys:['FC MEDIA','FC MEDI'],nom:'Fc Media'},
+{keys:['BILL BOARD','BILLBOARD','NEW BILL'],nom:'Néo Billboard'},
+{keys:['CHARISME'],nom:'Charisme Events'},
+{keys:['ATOUTLOC'],nom:'Atoutloc'},
+{keys:['FLEX COV','FLEX COR'],nom:'Flex Covers'},
+{keys:['LIGHT DIGITAL'],nom:'Light Digital'},
+{keys:['LUXE RADIO','RADIO VEILLE'],nom:'Luxe Radio'},
+{keys:['CONDEC'],nom:'Condec'},
+{keys:['ADIL LOTFI','LOTFI ADIL','ENTRPRENEUR ADI','ENTREPRENEUR ADI','ENTREPRENEUR ADIL','ENTREPRENEUR LO'],nom:'Adil Lotfi'},
+{keys:['KLT','KLTPUB'],nom:'KLT'},
+{keys:['IMPERIUM'],nom:'Imperium Media'},
+{keys:['LODITEC'],nom:'Loditec'},
+{keys:['EKO6'],nom:'EKO6TM'},
+{keys:['O FLEURS','OFLEURS'],nom:'O Fleurs'},
+{keys:['INDUS POLE','INDUS PÔLE','TGF INDUSTRIE'],nom:'INDUS pôle Technique'},
+];
+const paiementsFrns={};
+allOps.filter(o=>o.debit>0).forEach(o=>{
+const full=(o.libelle+' '+o.libComp).toUpperCase();
+for(const fm of fournMap){
+if(fm.keys.some(k=>full.includes(k))){
+if(!paiementsFrns[fm.nom])paiementsFrns[fm.nom]={total:0,ops:[]};
+paiementsFrns[fm.nom].total+=o.debit;
+paiementsFrns[fm.nom].ops.push(o);
+break;
+}}
+});
+// === 3. HISTORIQUE SOLDES MENSUELS ===
+const moisOps={};
 allOps.forEach(o=>{
-html+=`<tr><td style="white-space:nowrap">${o.date}</td><td style="font-size:11px">${o.libelle}</td><td style="font-size:10px;color:var(--text2);max-width:200px;overflow:hidden;text-overflow:ellipsis">${o.libComp}</td><td style="text-align:right;color:var(--dgr)">${o.debit?fmtK(o.debit):''}</td><td style="text-align:right;color:var(--grn)">${o.credit?fmtK(o.credit):''}</td></tr>`;
+const[dd,mm,yyyy]=o.date.split('-');
+const key=mm+'/'+yyyy;
+if(!moisOps[key])moisOps[key]={debits:0,credits:0};
+moisOps[key].debits+=o.debit;
+moisOps[key].credits+=o.credit;
+});
+// === APPLIQUER LES CHANGEMENTS ===
+// 1. Solde principal = calculer depuis les opérations
+const soldeFinal=D.soldeManuel.comptePrincipal+totalCredit-totalDebit;
+const ancienSolde=D.soldeManuel.comptePrincipal;
+D.soldeManuel.comptePrincipal=Math.round(soldeFinal);
+D.soldeManuel.date=new Date().toISOString().slice(0,10);
+// 2. Paiements fournisseurs → historique dettes
+let nbDettesMaj=0;
+Object.keys(paiementsFrns).forEach(nom=>{
+const dette=D.dettes.find(d=>d.nom.toLowerCase().replace(/\s+/g,'')===nom.toLowerCase().replace(/\s+/g,'')||d.nom.toLowerCase().includes(nom.toLowerCase().slice(0,8)));
+if(dette){
+if(!dette.paiements)dette.paiements=[];
+if(!Array.isArray(dette.paiements))dette.paiements=Object.values(dette.paiements);
+// Check if already imported (avoid duplicates based on total)
+const existingTotal=dette.paiements.reduce((s,p)=>s+p.montant,0);
+const newTotal=paiementsFrns[nom].total;
+if(existingTotal<newTotal){
+const diff=Math.round(newTotal-existingTotal);
+dette.paiements.push({date:new Date().toISOString().slice(0,10),montant:diff,moyen:'Import relevé bancaire'});
+nbDettesMaj++;
+}
+}
+});
+// 3. Historique soldes mensuels (mettre à jour les mois couverts)
+// On calcule un solde approx par mois en partant du solde final et en remontant
+const sortedMonths=Object.keys(moisOps).sort((a,b)=>{
+const[ma,ya]=a.split('/');const[mb,yb]=b.split('/');
+return(yb+mb).localeCompare(ya+ma);
+});
+let runningSolde=D.soldeManuel.comptePrincipal;
+sortedMonths.forEach(key=>{
+D.historiqueSoldes[key]=Math.round(runningSolde);
+runningSolde=runningSolde-moisOps[key].credits+moisOps[key].debits;
+});
+// Store import
+if(!D.releves)D.releves=[];
+D.releves.push({date:new Date().toISOString(),fichier:file.name,periode:dateMin+' → '+dateMax,nbOps:allOps.length,totalDebit:Math.round(totalDebit),totalCredit:Math.round(totalCredit)});
+await save();
+// === RAPPORT ===
+let html=`<div class="alrt alrt-i" style="font-size:13px"><b>✅ Import réussi — ${file.name}</b><br>Période: ${dateMin} → ${dateMax} | ${allOps.length} opérations</div>`;
+html+=`<div class="cards" style="margin:12px 0"><div class="card"><div class="card-l">Total crédits</div><div class="card-v green">${fmtK(totalCredit)}</div></div><div class="card"><div class="card-l">Total débits</div><div class="card-v red">${fmtK(totalDebit)}</div></div><div class="card"><div class="card-l">Solde mis à jour</div><div class="card-v">${fmtK(ancienSolde)} → <b>${fmtK(D.soldeManuel.comptePrincipal)}</b></div></div></div>`;
+// Encaissements par client
+html+=`<div class="stitle" style="font-size:14px;margin-top:12px">💰 Encaissements par client</div><div class="tw"><table><thead><tr><th>Client</th><th style="text-align:right">Montant total</th><th>Nb opérations</th></tr></thead><tbody>`;
+Object.keys(encaissements).sort((a,b)=>encaissements[b].total-encaissements[a].total).forEach(cl=>{
+const e=encaissements[cl];
+html+=`<tr><td style="font-weight:600">${cl}</td><td style="text-align:right;color:var(--grn)">${fmtK(e.total)}</td><td>${e.ops.length}</td></tr>`;
 });
 html+=`</tbody></table></div>`;
-// Store in releves
-if(!D.releves)D.releves=[];
-D.releves.push({date:new Date().toISOString(),periode:dateMin+' → '+dateMax,operations:allOps.map(o=>({date:o.date,libelle:o.libelle,montant:o.debit||o.credit,type:o.type})),totalDebit,totalCredit});
-await save();
+// Paiements fournisseurs
+html+=`<div class="stitle" style="font-size:14px;margin-top:12px">💳 Paiements fournisseurs détectés (${nbDettesMaj} dettes mises à jour)</div><div class="tw"><table><thead><tr><th>Fournisseur</th><th style="text-align:right">Montant total</th><th>Nb opérations</th><th>Rapproché</th></tr></thead><tbody>`;
+Object.keys(paiementsFrns).sort((a,b)=>paiementsFrns[b].total-paiementsFrns[a].total).forEach(nom=>{
+const p=paiementsFrns[nom];
+const dette=D.dettes.find(d=>d.nom.toLowerCase().replace(/\s+/g,'')===nom.toLowerCase().replace(/\s+/g,'')||d.nom.toLowerCase().includes(nom.toLowerCase().slice(0,8)));
+html+=`<tr><td style="font-weight:600">${nom}</td><td style="text-align:right;color:var(--dgr)">${fmtK(p.total)}</td><td>${p.ops.length}</td><td>${dette?'<span class="tag tag-a">✓ Oui</span>':'<span class="tag tag-w">Non trouvé</span>'}</td></tr>`;
+});
+html+=`</tbody></table></div>`;
+// Détail opérations
+html+=`<div class="stitle" style="font-size:14px;margin-top:12px">📋 Détail des ${allOps.length} opérations</div>`;
+html+=`<div class="tw" style="max-height:400px;overflow-y:auto"><table><thead><tr><th>Date</th><th>Libellé</th><th style="text-align:right">Débit</th><th style="text-align:right">Crédit</th></tr></thead><tbody>`;
+allOps.forEach(o=>{
+html+=`<tr><td style="white-space:nowrap">${o.date}</td><td style="font-size:11px">${o.libelle}</td><td style="text-align:right;color:var(--dgr)">${o.debit?fmtK(o.debit):''}</td><td style="text-align:right;color:var(--grn)">${o.credit?fmtK(o.credit):''}</td></tr>`;
+});
+html+=`</tbody></table></div>`;
 res.innerHTML=html;
-}catch(e){console.error(e);res.innerHTML='<div class="alrt alrt-d">Erreur lecture XLS: '+e.message+'</div>';}
+renderAll();
+}catch(e){console.error(e);res.innerHTML='<div class="alrt alrt-d">Erreur: '+e.message+'</div>';}
 };
-window.applyBankBalance=(netAmount)=>{
-if(confirm('Ajuster le solde principal de '+fmtK(netAmount)+' ?')){
-D.soldeManuel.comptePrincipal+=netAmount;
-D.soldeManuel.date=new Date().toISOString().slice(0,10);
-save();
-}
-};
+window.applyBankBalance=()=>{};
 
 // ===== PDF PARSER (Société Générale Maroc) =====
 pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
